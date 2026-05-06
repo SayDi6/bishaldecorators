@@ -43,6 +43,18 @@
         transform: translateY(0px);
       }
     }
+    
+    @keyframes burstBubble {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
   </style>
 </head>
 
@@ -322,7 +334,7 @@ async function loadConfessions() {
       div.style.padding = "15px";
 
       div.style.background =
-        "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.95), rgba(226,232,240,0.7))";
+        "radial-gradient(circle at 30% 30%, rgba(191,219,254,0.9), rgba(147,197,253,0.18), rgba(255,255,255,0.08))";
 
       div.style.backdropFilter =
         "blur(14px)";
@@ -331,7 +343,11 @@ async function loadConfessions() {
         "1px solid rgba(148,163,184,0.25)";
 
       div.style.boxShadow =
-        "0 8px 30px rgba(15,23,42,0.08)";
+        `
+        0 0 20px rgba(59,130,246,0.18),
+        0 0 35px rgba(168,85,247,0.12),
+        0 0 50px rgba(236,72,153,0.08)
+      `;
 
       div.style.transition = "0.3s";
 
@@ -392,22 +408,36 @@ async function loadConfessions() {
 
         } else {
 
-          div.innerHTML = `
-            <div style="
-              width:12px;
-              height:12px;
-              border-radius:50%;
-              background:rgba(255,255,255,0.45);
-              box-shadow:0 0 10px rgba(255,255,255,0.35);
-            ">
-            </div>
-          `;
-        }
-      };
+  div.style.animation =
+    "burstBubble 0.45s ease forwards";
 
-      list.appendChild(div);
+  setTimeout(() => {
 
-    });
+    div.style.animation =
+      `floatBubble ${Math.random() * 4 + 4}s ease-in-out infinite`;
+
+    div.innerHTML = `
+      <div style="
+        width:12px;
+        height:12px;
+        border-radius:50%;
+        background:rgba(255,255,255,0.7);
+        box-shadow:
+          0 0 10px rgba(59,130,246,0.5),
+          0 0 18px rgba(168,85,247,0.25);
+      ">
+      </div>
+    `;
+
+    }, 450);
+
+}
+
+};
+
+list.appendChild(div);
+
+});
 
   } catch (err) {
     console.error(err);
