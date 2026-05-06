@@ -203,6 +203,7 @@ async function loadConfessions() {
     }
 
     const results = await Promise.all(promises);
+    const placedBubbles = [];
 
     results.reverse().forEach((c, i) => {
 
@@ -221,11 +222,34 @@ async function loadConfessions() {
       const maxX = window.innerWidth - size - 40;
       const maxY = window.innerHeight - size - 40;
 
-      div.style.left =
-      Math.random() * maxX + "px";
+  let x, y;
+  let overlapping;
 
-       div.style.top =
-       Math.random() * maxY + "px";
+  do {
+  overlapping = false;
+
+  x = Math.random() * maxX;
+  y = Math.random() * maxY;
+
+  for (const bubble of placedBubbles) {
+
+    const dx = bubble.x - x;
+    const dy = bubble.y - y;
+
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance < (bubble.size / 2 + size / 2 + 30)) {
+      overlapping = true;
+      break;
+      }
+    }
+
+    } while (overlapping);
+
+      placedBubbles.push({ x, y, size });
+
+      div.style.left = x + "px";
+      div.style.top = y + "px";
       // 🫧 Bubble appearance
       div.style.borderRadius = "50%";
 
@@ -258,9 +282,15 @@ async function loadConfessions() {
 
       // 👀 Default text
       div.innerHTML = `
-     <div style="font-size:22px;">
-    </div>
-   `;
+    <div style="
+    width:12px;
+    height:12px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.45);
+    box-shadow:0 0 10px rgba(255,255,255,0.35);
+    ">
+   </div>
+  `;
 
       // ✨ Hover effect
       div.onmouseenter = () => {
@@ -303,12 +333,16 @@ async function loadConfessions() {
 
         } else {
 
-           div.innerHTML = `
-         <div style="font-size:22px;">
-        </div>
-       `;
-        }
-      };
+          div.innerHTML = `
+     <div style="
+      width:12px;
+      height:12px;
+      border-radius:50%;
+      background:rgba(255,255,255,0.45);
+     box-shadow:0 0 10px rgba(255,255,255,0.35);
+    ">
+   </div>
+ `;
 
       list.appendChild(div);
     });
