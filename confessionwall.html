@@ -70,8 +70,8 @@
 
 <input
   id="message"
-  placeholder="Write your confession..."
-  style="padding:10px; width:250px;"
+  placeholder="Share an anonymous thought..."
+  style="padding:10px; width:260px;"
 />
 
 <button onclick="postConfession()" style="padding:10px;">
@@ -80,7 +80,7 @@
 
 <br><br>
 
-<h3>🫧 Floating Confessions</h3>
+<h3>🫧 Floating Thoughts</h3>
 
 <div id="confessionList"></div>
 
@@ -154,7 +154,7 @@ async function connectWallet() {
   }
 }
 
-// 🚨 Hard blocked words
+// 🚨 Blocked words
 const blockedWords = [
 
   // violence
@@ -169,33 +169,24 @@ const blockedWords = [
   // sexual abuse
   "rape",
   "pedo",
+  "pedophile",
 
   // self-harm
   "suicide",
   "selfharm",
 
-  // extremist abuse
-  "genocide"
-];
-
-// ⚠️ Warning words
-const warningWords = [
-
-  // profanity
+  // explicit/profanity
   "fuck",
   "bitch",
-
-  // sexual
   "sex",
   "anal",
 
-  // insults
-  "bitch",
-  "nigger",
-  "pedophile",
-
   // slurs
-  "nigga"
+  "nigga",
+  "nigger",
+
+  // extremist abuse
+  "genocide"
 ];
 
 // 🧼 Normalize text
@@ -205,7 +196,7 @@ function normalizeMessage(text) {
 
     .toLowerCase()
 
-    // convert common number tricks
+    // convert number tricks
     .replace(/4/g, "a")
     .replace(/1/g, "i")
     .replace(/3/g, "e")
@@ -222,7 +213,7 @@ function normalizeMessage(text) {
     // reduce repeated letters
     .replace(/(.)\1+/g, "$1");
 }
-  
+
 // 🔹 Post confession
 async function postConfession() {
 
@@ -232,64 +223,85 @@ async function postConfession() {
   }
 
   const msg =
-    document.getElementById("message").value;
-  // ✍️ Character limit
-if (msg.length > 200) {
+    document.getElementById("message").value.trim();
 
-  alert(
-    "Maximum 200 characters allowed"
-  );
+  if (!msg) {
+    alert("Write something first");
+    return;
+  }
 
-  return;
-}
-
-// 🌍 English-like text only
-const englishOnly =
-  /^[a-zA-Z0-9\s.,!?'"()-]+$/;
-
-if (!englishOnly.test(msg)) {
-
-  alert(
-    "Only standard English text is allowed currently"
-  );
-
-  return;
-}
-
-// 🧼 Clean message
-const cleanedMsg =
-  normalizeMessage(msg);
-
-// 🚨 Hard block check
-for (const word of blockedWords) {
-
-  if (cleanedMsg.includes(word)) {
+  // ✍️ Max 200 characters
+  if (msg.length > 200) {
 
     alert(
-      "Restricted words detected"
+      "Maximum 200 characters allowed"
     );
 
     return;
   }
-}
 
-// ⚠️ Warning check
-for (const word of warningWords) {
+  // 🌍 English-like text only
+  const englishOnly =
+    /^[a-zA-Z0-9\s.,!?'"()-]+$/;
 
-  if (cleanedMsg.includes(word)) {
+  if (!englishOnly.test(msg)) {
 
-    const proceed =
-      confirm(
-        "This message may violate community safety. Continue?"
+    alert(
+      "Only standard English text is allowed currently"
+    );
+
+    return;
+  }
+
+  // 🧼 Clean text
+  const cleanedMsg =
+    normalizeMessage(msg);
+
+  // 🚨 Block bad words
+  for (const word of blockedWords) {
+
+    if (cleanedMsg.includes(word)) {
+
+      alert(
+        "Restricted words detected"
       );
 
-    if (!proceed)
       return;
+    }
   }
-}
 
-  if (!msg) {
-    alert("Write something first");
+  // ⏳ Cooldown system
+  const now = Date.now();
+
+  const lastPostTime =
+    localStorage.getItem("lastPostTime");
+
+  if (
+    lastPostTime &&
+    now - lastPostTime < 60000
+  ) {
+
+    alert(
+      "Please wait 1 minute before posting again"
+    );
+
+    return;
+  }
+
+  // 🚫 Duplicate prevention
+  let recentPosts =
+    JSON.parse(
+      localStorage.getItem("recentPosts")
+    ) || [];
+
+  if (
+    recentPosts.includes(cleanedMsg)
+  ) {
+
+    alert(
+      "Duplicate messages are not allowed"
+    );
+
     return;
   }
 
@@ -301,6 +313,24 @@ for (const word of warningWords) {
       });
 
     await tx.wait();
+
+    // 💾 Save cooldown
+    localStorage.setItem(
+      "lastPostTime",
+      now
+    );
+
+    // 💾 Save recent posts
+    recentPosts.push(cleanedMsg);
+
+    if (recentPosts.length > 5) {
+      recentPosts.shift();
+    }
+
+    localStorage.setItem(
+      "recentPosts",
+      JSON.stringify(recentPosts)
+    );
 
     document.getElementById("message").value = "";
 
@@ -375,8 +405,27 @@ async function loadConfessions() {
     list.innerHTML = "";
 
     const promises = [];
+    const randomIndexes = [];
 
-    for (let i = 0; i < total; i++) {
+    const batchSize =
+      Math.min(50, total);
+
+    while (
+      randomIndexes.length < batchSize
+    ) {
+
+      const randomIndex =
+        Math.floor(Math.random() * total);
+
+      if (
+        !randomIndexes.includes(randomIndex)
+      ) {
+        randomIndexes.push(randomIndex);
+      }
+    }
+
+    for (const i of randomIndexes) {
+
       promises.push(
         readContract.confessions(i)
       );
@@ -387,7 +436,7 @@ async function loadConfessions() {
 
     const placedBubbles = [];
 
-    results.reverse().forEach((c) => {
+    results.forEach((c) => {
 
       const div =
         document.createElement("div");
@@ -476,7 +525,7 @@ async function loadConfessions() {
 
       div.style.transition = "0.3s";
 
-      // ✨ Floating animation
+      // ✨ Floating
       div.style.animation =
         `floatBubble ${Math.random() * 4 + 4}s ease-in-out infinite`;
 
@@ -503,7 +552,7 @@ async function loadConfessions() {
         div.style.transform = "scale(1)";
       };
 
-      // 🔓 Reveal system
+      // 🔓 Reveal
       let revealed = false;
 
       div.onclick = () => {
