@@ -125,22 +125,31 @@ async function tipOwner() {
     }
   }
 }
-// 🔥 Load Confessions (fast + UI)
+
+// 🔥 Bubble Confession UI
 async function loadConfessions() {
   try {
     const total = await readContract.getTotalConfessions();
 
     const list = document.getElementById("confessionList");
+
+    // 🫧 Bubble layout
+    list.style.display = "flex";
+    list.style.flexWrap = "wrap";
+    list.style.gap = "15px";
+    list.style.justifyContent = "center";
+
     list.innerHTML = "Loading... ⏳";
 
     const promises = [];
+
     for (let i = 0; i < total; i++) {
       promises.push(readContract.confessions(i));
     }
 
     const results = await Promise.all(promises);
 
-    // 🔥 Sort by tips (premium feel)
+    // 🌟 Sort by tips
     const sorted = results
       .map((c, i) => ({ data: c, index: i }))
       .sort((a, b) => b.data[2] - a.data[2]);
@@ -153,23 +162,81 @@ async function loadConfessions() {
 
       const div = document.createElement("div");
 
-      // 🌟 Highlight top confession
+      // 🌟 Spotlight bubble
       if (i === 0 && Number(c[2]) > 0) {
-        div.style.background = "linear-gradient(135deg, #facc15, #f97316)";
+        div.style.background =
+          "linear-gradient(135deg, #facc15, #f97316)";
         div.style.color = "black";
       } else {
         div.style.background = "#1e293b";
+        div.style.color = "white";
       }
 
+      // 🫧 Bubble style
+      div.style.width = "140px";
+      div.style.height = "140px";
+      div.style.borderRadius = "50%";
+      div.style.display = "flex";
+      div.style.alignItems = "center";
+      div.style.justifyContent = "center";
+      div.style.textAlign = "center";
+      div.style.cursor = "pointer";
       div.style.padding = "15px";
-      div.style.marginBottom = "12px";
-      div.style.borderRadius = "10px";
+      div.style.fontWeight = "bold";
+      div.style.boxShadow = "0 0 15px rgba(0,0,0,0.4)";
+      div.style.transition = "0.3s";
+      div.style.overflow = "hidden";
 
+      // 👀 Default state
       div.innerHTML = `
-     <p><b>#${actualIndex}</b> ${c[0]}</p>
-     <small>${formatTime(c[1])}</small>
-     ${i === 0 && Number(c[2]) > 0 ? "<br><b>🔥 Spotlight</b>" : ""}
-    `;
+        <div>
+          🫧<br>
+          Tap to Reveal
+        </div>
+      `;
+
+      // ✨ Hover animation
+      div.onmouseenter = () => {
+        div.style.transform = "scale(1.05)";
+      };
+
+      div.onmouseleave = () => {
+        div.style.transform = "scale(1)";
+      };
+
+      // 🔓 Reveal logic
+      let revealed = false;
+
+      div.onclick = () => {
+        revealed = !revealed;
+
+        if (revealed) {
+          div.innerHTML = `
+            <div>
+              <p style="font-size:13px; margin:0;">
+                ${c[0]}
+              </p>
+
+              <small style="font-size:10px; opacity:0.8;">
+                ${formatTime(c[1])}
+              </small>
+
+              ${
+                i === 0 && Number(c[2]) > 0
+                  ? "<br><span style='color:gold;'>🔥 Spotlight</span>"
+                  : ""
+              }
+            </div>
+          `;
+        } else {
+          div.innerHTML = `
+            <div>
+              🫧<br>
+              Tap to Reveal
+            </div>
+          `;
+        }
+      };
 
       list.appendChild(div);
     });
