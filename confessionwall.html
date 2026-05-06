@@ -293,7 +293,7 @@ async function loadConfessions() {
         overlapping = false;
 
         x = Math.random() * maxX;
-        y = Math.random() * maxY;
+        y = Math.random() * (maxY - 120) + 120;
 
         for (const bubble of placedBubbles) {
 
