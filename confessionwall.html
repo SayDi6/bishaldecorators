@@ -2,22 +2,73 @@
 <html>
 <head>
   <title>Anonymous Confession Wall</title>
+
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: white;
+      padding: 30px;
+    }
+
+    h2, h3 {
+      position: relative;
+      z-index: 10;
+    }
+
+    input, button {
+      position: relative;
+      z-index: 10;
+    }
+
+    #confessionList {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+    }
+
+    @keyframes floatBubble {
+      0% {
+        transform: translateY(0px);
+      }
+
+      50% {
+        transform: translateY(-20px);
+      }
+
+      100% {
+        transform: translateY(0px);
+      }
+    }
+  </style>
 </head>
 
-<body style="font-family: Arial; background:#0f172a; color:white; padding:20px;">
+<body>
 
 <h2>🕵️ Anonymous Confession Wall</h2>
 
-<button onclick="connectWallet()" style="padding:8px 12px;">Connect Wallet</button>
+<button onclick="connectWallet()" style="padding:8px 12px;">
+  Connect Wallet
+</button>
 
 <br><br>
 
-<input id="message" placeholder="Write your confession..." style="padding:10px; width:250px;" />
-<button onclick="postConfession()" style="padding:10px;">Post</button>
+<input
+  id="message"
+  placeholder="Write your confession..."
+  style="padding:10px; width:250px;"
+/>
+
+<button onclick="postConfession()" style="padding:10px;">
+  Post
+</button>
 
 <br><br>
 
-<h3>📜 Confessions</h3>
+<h3>🫧 Floating Confessions</h3>
+
 <div id="confessionList"></div>
 
 <!-- ethers -->
@@ -28,7 +79,6 @@ const contractAddress = "0x4f1ab8fcc85aaa20ffe3105add56b2d2185aa3db";
 
 const abi = [
   "function postConfession(string memory _message) payable",
-  "function tipConfession(uint256 index) payable",
   "function getTotalConfessions() view returns (uint256)",
   "function confessions(uint256) view returns (string memory, uint256, uint256)"
 ];
@@ -38,8 +88,11 @@ let signer;
 let contract;
 
 // 🌐 Public read provider
-const readProvider = new ethers.providers.JsonRpcProvider("https://mainnet.base.org");
-const readContract = new ethers.Contract(contractAddress, abi, readProvider);
+const readProvider =
+  new ethers.providers.JsonRpcProvider("https://mainnet.base.org");
+
+const readContract =
+  new ethers.Contract(contractAddress, abi, readProvider);
 
 // 🔹 Connect Wallet
 async function connectWallet() {
@@ -48,31 +101,41 @@ async function connectWallet() {
     return;
   }
 
-  await window.ethereum.request({ method: "eth_requestAccounts" });
+  try {
+    await window.ethereum.request({
+      method: "eth_requestAccounts"
+    });
 
-  provider = new ethers.providers.Web3Provider(window.ethereum);
-  signer = provider.getSigner();
+    provider =
+      new ethers.providers.Web3Provider(window.ethereum);
 
-  await window.ethereum.request({
-    method: "wallet_switchEthereumChain",
-    params: [{ chainId: "0x2105" }]
-  });
+    signer = provider.getSigner();
 
-  contract = new ethers.Contract(contractAddress, abi, signer);
+    await window.ethereum.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: "0x2105" }]
+    });
 
-  alert("Wallet Connected ✅");
+    contract =
+      new ethers.Contract(contractAddress, abi, signer);
 
-  await loadConfessions();
+    alert("Wallet Connected ✅");
+
+  } catch (err) {
+    console.error(err);
+    alert(err.message);
+  }
 }
 
-// 🔹 Post
+// 🔹 Post confession
 async function postConfession() {
   if (!contract) {
     alert("Connect wallet first");
     return;
   }
 
-  const msg = document.getElementById("message").value;
+  const msg =
+    document.getElementById("message").value;
 
   if (!msg) {
     alert("Write something first");
@@ -90,56 +153,48 @@ async function postConfession() {
   await loadConfessions();
 }
 
-async function tipOwner() {
-  if (!contract) {
-    alert("Connect wallet first");
-    return;
-  }
-
-  const tx = await contract.tipConfession(0, {
-    value: ethers.utils.parseEther("0.00001")
-  });
-
-  await tx.wait();
-
-  alert("Thanks for the tip ❤️");
-}
-  function formatTime(ts) {
+// ⏱ Human readable time
+function formatTime(ts) {
   const now = Math.floor(Date.now() / 1000);
   const diff = now - ts;
 
   if (diff < 60) return "Just now";
 
-  const units = [
-    { s: 31536000, name: "year" },
-    { s: 2592000, name: "month" },
-    { s: 86400, name: "day" },
-    { s: 3600, name: "hour" },
-    { s: 60, name: "min" }
-  ];
-
-  for (let u of units) {
-    const val = Math.floor(diff / u.s);
-    if (val >= 1) {
-      return val + " " + u.name + (val > 1 ? "s ago" : " ago");
-    }
+  if (diff < 3600) {
+    const m = Math.floor(diff / 60);
+    return m + (m === 1 ? " min ago" : " mins ago");
   }
+
+  if (diff < 86400) {
+    const h = Math.floor(diff / 3600);
+    const m = Math.floor((diff % 3600) / 60);
+
+    if (m === 0)
+      return h + (h === 1 ? " hour ago" : " hours ago");
+
+    return `${h}h ${m}m ago`;
+  }
+
+  if (diff < 2592000) {
+    const d = Math.floor(diff / 86400);
+    return d + (d === 1 ? " day ago" : " days ago");
+  }
+
+  const y = Math.floor(diff / 31536000);
+
+  return y + (y === 1 ? " year ago" : " years ago");
 }
 
-// 🔥 Bubble Confession UI
+// 🫧 Load floating bubbles
 async function loadConfessions() {
   try {
-    const total = await readContract.getTotalConfessions();
+    const total =
+      await readContract.getTotalConfessions();
 
-    const list = document.getElementById("confessionList");
+    const list =
+      document.getElementById("confessionList");
 
-    // 🫧 Bubble layout
-    list.style.display = "flex";
-    list.style.flexWrap = "wrap";
-    list.style.gap = "15px";
-    list.style.justifyContent = "center";
-
-    list.innerHTML = "Loading... ⏳";
+    list.innerHTML = "";
 
     const promises = [];
 
@@ -149,45 +204,57 @@ async function loadConfessions() {
 
     const results = await Promise.all(promises);
 
-    // 🌟 Sort by tips
-    const sorted = results
-      .map((c, i) => ({ data: c, index: i }))
-      .sort((a, b) => b.data[2] - a.data[2]);
-
-    list.innerHTML = "";
-
-    sorted.forEach((item, i) => {
-      const c = item.data;
-      const actualIndex = item.index;
+    results.reverse().forEach((c, i) => {
 
       const div = document.createElement("div");
 
-      // 🌟 Spotlight bubble
-      if (i === 0 && Number(c[2]) > 0) {
-        div.style.background =
-          "linear-gradient(135deg, #facc15, #f97316)";
-        div.style.color = "black";
-      } else {
-        div.style.background = "#1e293b";
-        div.style.color = "white";
-      }
+      // 🫧 Random size
+      const size =
+        Math.floor(Math.random() * 120) + 120;
 
-      // 🫧 Bubble style
-      div.style.width = "140px";
-      div.style.height = "140px";
+      div.style.width = size + "px";
+      div.style.height = size + "px";
+
+      // 🫧 Floating position
+      div.style.position = "absolute";
+
+      div.style.left =
+        Math.random() * 80 + "vw";
+
+      div.style.top =
+        Math.random() * 70 + "vh";
+
+      // 🫧 Bubble appearance
       div.style.borderRadius = "50%";
+
       div.style.display = "flex";
       div.style.alignItems = "center";
       div.style.justifyContent = "center";
+
       div.style.textAlign = "center";
       div.style.cursor = "pointer";
-      div.style.padding = "15px";
-      div.style.fontWeight = "bold";
-      div.style.boxShadow = "0 0 15px rgba(0,0,0,0.4)";
-      div.style.transition = "0.3s";
-      div.style.overflow = "hidden";
 
-      // 👀 Default state
+      div.style.padding = "15px";
+
+      div.style.background =
+        "rgba(255,255,255,0.08)";
+
+      div.style.backdropFilter =
+        "blur(8px)";
+
+      div.style.border =
+        "1px solid rgba(255,255,255,0.15)";
+
+      div.style.boxShadow =
+        "0 0 25px rgba(255,255,255,0.05)";
+
+      div.style.transition = "0.3s";
+
+      // ✨ Floating animation
+      div.style.animation =
+        `floatBubble ${Math.random() * 4 + 4}s ease-in-out infinite`;
+
+      // 👀 Default text
       div.innerHTML = `
         <div>
           🫧<br>
@@ -195,40 +262,47 @@ async function loadConfessions() {
         </div>
       `;
 
-      // ✨ Hover animation
+      // ✨ Hover effect
       div.onmouseenter = () => {
-        div.style.transform = "scale(1.05)";
+        div.style.transform = "scale(1.08)";
       };
 
       div.onmouseleave = () => {
         div.style.transform = "scale(1)";
       };
 
-      // 🔓 Reveal logic
+      // 🔓 Reveal
       let revealed = false;
 
       div.onclick = () => {
+
         revealed = !revealed;
 
         if (revealed) {
+
           div.innerHTML = `
             <div>
-              <p style="font-size:13px; margin:0;">
+              <p style="
+                font-size:14px;
+                margin:0;
+                word-break:break-word;
+              ">
                 ${c[0]}
               </p>
 
-              <small style="font-size:10px; opacity:0.8;">
+              <br>
+
+              <small style="
+                opacity:0.8;
+                font-size:11px;
+              ">
                 ${formatTime(c[1])}
               </small>
-
-              ${
-                i === 0 && Number(c[2]) > 0
-                  ? "<br><span style='color:gold;'>🔥 Spotlight</span>"
-                  : ""
-              }
             </div>
           `;
+
         } else {
+
           div.innerHTML = `
             <div>
               🫧<br>
@@ -248,27 +322,29 @@ async function loadConfessions() {
 
 // 🔁 Auto connect
 async function autoConnect() {
+
   if (!window.ethereum) return;
 
-  const accounts = await window.ethereum.request({ method: "eth_accounts" });
+  const accounts =
+    await window.ethereum.request({
+      method: "eth_accounts"
+    });
 
   if (accounts.length > 0) {
-    provider = new ethers.providers.Web3Provider(window.ethereum);
+
+    provider =
+      new ethers.providers.Web3Provider(window.ethereum);
+
     signer = provider.getSigner();
 
-    const network = await provider.getNetwork();
+    const network =
+      await provider.getNetwork();
+
     if (network.chainId !== 8453) return;
 
-    contract = new ethers.Contract(contractAddress, abi, signer);
-
-    await loadConfessions();
+    contract =
+      new ethers.Contract(contractAddress, abi, signer);
   }
-}
-
-// 🔁 Events
-if (window.ethereum) {
-  window.ethereum.on("accountsChanged", autoConnect);
-  window.ethereum.on("chainChanged", () => window.location.reload());
 }
 
 // 🚀 Start
@@ -276,6 +352,20 @@ window.onload = async () => {
   await loadConfessions();
   await autoConnect();
 };
+
+// 🔁 Wallet events
+if (window.ethereum) {
+
+  window.ethereum.on(
+    "accountsChanged",
+    autoConnect
+  );
+
+  window.ethereum.on(
+    "chainChanged",
+    () => window.location.reload()
+  );
+}
 </script>
 
 </body>
