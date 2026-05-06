@@ -26,7 +26,8 @@
     #confessionList {
       position: relative;
       width: 100%;
-      height: 100vh;
+      height: calc(100vh - 220px);
+      overflow: hidden;
     }
 
     @keyframes floatBubble {
@@ -87,21 +88,29 @@ let provider;
 let signer;
 let contract;
 
-// 🌐 Public read provider
+// 🌐 Public provider
 const readProvider =
-  new ethers.providers.JsonRpcProvider("https://mainnet.base.org");
+  new ethers.providers.JsonRpcProvider(
+    "https://mainnet.base.org"
+  );
 
 const readContract =
-  new ethers.Contract(contractAddress, abi, readProvider);
+  new ethers.Contract(
+    contractAddress,
+    abi,
+    readProvider
+  );
 
 // 🔹 Connect Wallet
 async function connectWallet() {
+
   if (!window.ethereum) {
     alert("Install MetaMask");
     return;
   }
 
   try {
+
     await window.ethereum.request({
       method: "eth_requestAccounts"
     });
@@ -117,7 +126,11 @@ async function connectWallet() {
     });
 
     contract =
-      new ethers.Contract(contractAddress, abi, signer);
+      new ethers.Contract(
+        contractAddress,
+        abi,
+        signer
+      );
 
     alert("Wallet Connected ✅");
 
@@ -129,6 +142,7 @@ async function connectWallet() {
 
 // 🔹 Post confession
 async function postConfession() {
+
   if (!contract) {
     alert("Connect wallet first");
     return;
@@ -142,52 +156,79 @@ async function postConfession() {
     return;
   }
 
-  const tx = await contract.postConfession(msg, {
-    value: ethers.utils.parseEther("0.00001")
-  });
+  try {
 
-  await tx.wait();
+    const tx =
+      await contract.postConfession(msg, {
+        value: ethers.utils.parseEther("0.00001")
+      });
 
-  document.getElementById("message").value = "";
+    await tx.wait();
 
-  await loadConfessions();
+    document.getElementById("message").value = "";
+
+    await loadConfessions();
+
+  } catch (err) {
+    console.error(err);
+    alert("Transaction failed");
+  }
 }
 
-// ⏱ Human readable time
+// ⏱ Time formatter
 function formatTime(ts) {
-  const now = Math.floor(Date.now() / 1000);
+
+  const now =
+    Math.floor(Date.now() / 1000);
+
   const diff = now - ts;
 
-  if (diff < 60) return "Just now";
+  if (diff < 60)
+    return "Just now";
 
   if (diff < 3600) {
-    const m = Math.floor(diff / 60);
-    return m + (m === 1 ? " min ago" : " mins ago");
+
+    const m =
+      Math.floor(diff / 60);
+
+    return m + (m === 1
+      ? " min ago"
+      : " mins ago");
   }
 
   if (diff < 86400) {
-    const h = Math.floor(diff / 3600);
-    const m = Math.floor((diff % 3600) / 60);
 
-    if (m === 0)
-      return h + (h === 1 ? " hour ago" : " hours ago");
+    const h =
+      Math.floor(diff / 3600);
 
-    return `${h}h ${m}m ago`;
+    return h + (h === 1
+      ? " hour ago"
+      : " hours ago");
   }
 
   if (diff < 2592000) {
-    const d = Math.floor(diff / 86400);
-    return d + (d === 1 ? " day ago" : " days ago");
+
+    const d =
+      Math.floor(diff / 86400);
+
+    return d + (d === 1
+      ? " day ago"
+      : " days ago");
   }
 
-  const y = Math.floor(diff / 31536000);
+  const y =
+    Math.floor(diff / 31536000);
 
-  return y + (y === 1 ? " year ago" : " years ago");
+  return y + (y === 1
+    ? " year ago"
+    : " years ago");
 }
 
-// 🫧 Load floating bubbles
+// 🫧 Load bubbles
 async function loadConfessions() {
+
   try {
+
     const total =
       await readContract.getTotalConfessions();
 
@@ -199,57 +240,75 @@ async function loadConfessions() {
     const promises = [];
 
     for (let i = 0; i < total; i++) {
-      promises.push(readContract.confessions(i));
+      promises.push(
+        readContract.confessions(i)
+      );
     }
 
-    const results = await Promise.all(promises);
+    const results =
+      await Promise.all(promises);
+
     const placedBubbles = [];
 
-    results.reverse().forEach((c, i) => {
+    results.reverse().forEach((c) => {
 
-      const div = document.createElement("div");
+      const div =
+        document.createElement("div");
 
-      // 🫧 Random size
+      // 🫧 Random bubble size
       const size =
         Math.floor(Math.random() * 50) + 70;
 
       div.style.width = size + "px";
       div.style.height = size + "px";
 
-      // 🫧 Floating position
+      // 🫧 Position
       div.style.position = "absolute";
 
-      const maxX = window.innerWidth - size - 40;
-      const maxY = window.innerHeight - size - 40;
+      const maxX =
+        window.innerWidth - size - 60;
 
-  let x, y;
-  let overlapping;
+      const maxY =
+        window.innerHeight - size - 260;
 
-  do {
-  overlapping = false;
+      let x, y;
+      let overlapping;
 
-  x = Math.random() * maxX;
-  y = Math.random() * maxY;
+      do {
 
-  for (const bubble of placedBubbles) {
+        overlapping = false;
 
-    const dx = bubble.x - x;
-    const dy = bubble.y - y;
+        x = Math.random() * maxX;
+        y = Math.random() * maxY;
 
-    const distance = Math.sqrt(dx * dx + dy * dy);
+        for (const bubble of placedBubbles) {
 
-    if (distance < (bubble.size / 2 + size / 2 + 30)) {
-      overlapping = true;
-      break;
-      }
-    }
+          const dx = bubble.x - x;
+          const dy = bubble.y - y;
 
-    } while (overlapping);
+          const distance =
+            Math.sqrt(dx * dx + dy * dy);
 
-      placedBubbles.push({ x, y, size });
+          if (
+            distance <
+            (bubble.size / 2 + size / 2 + 25)
+          ) {
+            overlapping = true;
+            break;
+          }
+        }
+
+      } while (overlapping);
+
+      placedBubbles.push({
+        x,
+        y,
+        size
+      });
 
       div.style.left = x + "px";
       div.style.top = y + "px";
+
       // 🫧 Bubble appearance
       div.style.borderRadius = "50%";
 
@@ -263,7 +322,7 @@ async function loadConfessions() {
       div.style.padding = "15px";
 
       div.style.background =
-   "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18), rgba(255,255,255,0.05))";
+        "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18), rgba(255,255,255,0.05))";
 
       div.style.backdropFilter =
         "blur(8px)";
@@ -276,23 +335,23 @@ async function loadConfessions() {
 
       div.style.transition = "0.3s";
 
-      // ✨ Floating animation
+      // ✨ Floating
       div.style.animation =
         `floatBubble ${Math.random() * 4 + 4}s ease-in-out infinite`;
 
-      // 👀 Default text
+      // 🫧 Default look
       div.innerHTML = `
-    <div style="
-    width:12px;
-    height:12px;
-    border-radius:50%;
-    background:rgba(255,255,255,0.45);
-    box-shadow:0 0 10px rgba(255,255,255,0.35);
-    ">
-   </div>
-  `;
+        <div style="
+          width:12px;
+          height:12px;
+          border-radius:50%;
+          background:rgba(255,255,255,0.45);
+          box-shadow:0 0 10px rgba(255,255,255,0.35);
+        ">
+        </div>
+      `;
 
-      // ✨ Hover effect
+      // ✨ Hover
       div.onmouseenter = () => {
         div.style.transform = "scale(1.08)";
       };
@@ -313,7 +372,7 @@ async function loadConfessions() {
           div.innerHTML = `
             <div>
               <p style="
-                font-size:14px;
+                font-size:13px;
                 margin:0;
                 word-break:break-word;
               ">
@@ -324,7 +383,7 @@ async function loadConfessions() {
 
               <small style="
                 opacity:0.8;
-                font-size:11px;
+                font-size:10px;
               ">
                 ${formatTime(c[1])}
               </small>
@@ -334,17 +393,20 @@ async function loadConfessions() {
         } else {
 
           div.innerHTML = `
-     <div style="
-      width:12px;
-      height:12px;
-      border-radius:50%;
-      background:rgba(255,255,255,0.45);
-     box-shadow:0 0 10px rgba(255,255,255,0.35);
-    ">
-   </div>
- `;
+            <div style="
+              width:12px;
+              height:12px;
+              border-radius:50%;
+              background:rgba(255,255,255,0.45);
+              box-shadow:0 0 10px rgba(255,255,255,0.35);
+            ">
+            </div>
+          `;
+        }
+      };
 
       list.appendChild(div);
+
     });
 
   } catch (err) {
@@ -355,7 +417,8 @@ async function loadConfessions() {
 // 🔁 Auto connect
 async function autoConnect() {
 
-  if (!window.ethereum) return;
+  if (!window.ethereum)
+    return;
 
   const accounts =
     await window.ethereum.request({
@@ -372,16 +435,23 @@ async function autoConnect() {
     const network =
       await provider.getNetwork();
 
-    if (network.chainId !== 8453) return;
+    if (network.chainId !== 8453)
+      return;
 
     contract =
-      new ethers.Contract(contractAddress, abi, signer);
+      new ethers.Contract(
+        contractAddress,
+        abi,
+        signer
+      );
   }
 }
 
 // 🚀 Start
 window.onload = async () => {
+
   await loadConfessions();
+
   await autoConnect();
 };
 
