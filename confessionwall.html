@@ -135,7 +135,7 @@
     id="charCounter"
     style="color:#64748b;"
   >
-    0 / 100
+    0 / 125
   </small>
 
   <br><br>
@@ -275,30 +275,30 @@
 
     messageInput.addEventListener("input", () => {
 
-      // ✂️ stop at 100
+      // ✂️ stop at 125
       if (
-        messageInput.value.length > 100
+        messageInput.value.length > 125
       ) {
 
         messageInput.value =
-          messageInput.value.slice(0, 100);
+          messageInput.value.slice(0, 125);
       }
 
       const length =
         messageInput.value.length;
 
       charCounter.innerText =
-        `${length} / 100`;
+        `${length} / 125`;
 
       // ⚪ normal
-      if (length < 80) {
+      if (length < 100) {
 
         charCounter.style.color =
           "#64748b";
       }
 
       // 🟡 warning
-      else if (length < 100) {
+      else if (length < 125) {
 
         charCounter.style.color =
           "#eab308";
