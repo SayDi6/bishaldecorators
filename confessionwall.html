@@ -4,6 +4,7 @@
   <title>Anonymous Confession Wall</title>
 
   <style>
+
     body {
       margin: 0;
       overflow: hidden;
@@ -13,12 +14,9 @@
       padding: 30px;
     }
 
-    h2, h3 {
-      position: relative;
-      z-index: 10;
-    }
-
-    input, button {
+    h2, h3,
+    input, button,
+    small {
       position: relative;
       z-index: 10;
     }
@@ -30,706 +28,774 @@
       overflow: hidden;
     }
 
+    /* 🫧 Floating bubble movement */
     @keyframes floatBubble {
+
       0% {
-        transform: translateY(0px);
+        transform:
+          translateY(0px)
+          translateX(0px)
+          scale(1);
+      }
+
+      25% {
+        transform:
+          translateY(-10px)
+          translateX(4px)
+          scale(1.02);
       }
 
       50% {
-        transform: translateY(-20px);
+        transform:
+          translateY(-18px)
+          translateX(-4px)
+          scale(0.98);
+      }
+
+      75% {
+        transform:
+          translateY(-8px)
+          translateX(3px)
+          scale(1.01);
       }
 
       100% {
-        transform: translateY(0px);
+        transform:
+          translateY(0px)
+          translateX(0px)
+          scale(1);
       }
     }
 
+    /* 💥 Bubble burst */
     @keyframes burstBubble {
+
       0% {
         transform: scale(1);
         opacity: 1;
+        filter: blur(0px);
+      }
+
+      70% {
+        transform: scale(1.25);
+        opacity: 0.7;
+        filter: blur(1px);
       }
 
       100% {
-        transform: scale(1.8);
+        transform: scale(1.6);
         opacity: 0;
+        filter: blur(4px);
       }
     }
+
+    /* ✨ Smooth text fade */
+    @keyframes fadeIn {
+
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
   </style>
 </head>
 
 <body>
 
-<h2>🕵️ Anonymous Confession Wall</h2>
+  <h2>🕵️ Anonymous Confession Wall</h2>
 
-<button onclick="connectWallet()" style="padding:8px 12px;">
-  Connect Wallet
-</button>
-  
-<br><br>
+  <button
+    onclick="connectWallet()"
+    style="padding:8px 12px;"
+  >
+    Connect Wallet
+  </button>
 
-<input
-  id="message"
-  placeholder="Share an anonymous thought..."
-  style="padding:10px; width:260px;"
-/>
-
-<button onclick="postConfession()" style="padding:10px;">
-  Post
-</button>
   <br><br>
 
-<small
-  id="charCounter"
-  style="
-    position:relative;
-    z-index:10;
-    color:#64748b;
-  "
->
-  0 / 200
-</small>
+  <input
+    id="message"
+    placeholder="Share an anonymous thought..."
+    style="padding:10px; width:260px;"
+  />
 
-<br><br>
+  <button
+    onclick="postConfession()"
+    style="padding:10px;"
+  >
+    Post
+  </button>
 
-<h3>🫧 Floating Thoughts</h3>
+  <br><br>
 
-<div id="confessionList"></div>
+  <small
+    id="charCounter"
+    style="color:#64748b;"
+  >
+    0 / 200
+  </small>
 
-<!-- ethers -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+  <br><br>
 
-<script>
+  <h3>🫧 Floating Confessions</h3>
 
-const contractAddress =
-  "0x4f1ab8fcc85aaa20ffe3105add56b2d2185aa3db";
+  <div id="confessionList"></div>
 
-const abi = [
-  "function postConfession(string memory _message) payable",
-  "function getTotalConfessions() view returns (uint256)",
-  "function confessions(uint256) view returns (string memory, uint256, uint256)"
-];
+  <!-- ethers -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 
-let provider;
-let signer;
-let contract;
+  <script>
 
-// 🌐 Public provider
-const readProvider =
-  new ethers.providers.JsonRpcProvider(
-    "https://mainnet.base.org"
-  );
+    const contractAddress =
+      "0x4f1ab8fcc85aaa20ffe3105add56b2d2185aa3db";
 
-const readContract =
-  new ethers.Contract(
-    contractAddress,
-    abi,
-    readProvider
-  );
+    const abi = [
+      "function postConfession(string memory _message) payable",
+      "function getTotalConfessions() view returns (uint256)",
+      "function confessions(uint256) view returns (string memory, uint256, uint256)"
+    ];
 
-// 🔹 Connect Wallet
-async function connectWallet() {
+    let provider;
+    let signer;
+    let contract;
 
-  if (!window.ethereum) {
-    alert("Install MetaMask");
-    return;
-  }
+    // 🌐 Public provider
+    const readProvider =
+      new ethers.providers.JsonRpcProvider(
+        "https://mainnet.base.org"
+      );
 
-  try {
-
-    await window.ethereum.request({
-      method: "eth_requestAccounts"
-    });
-
-    provider =
-      new ethers.providers.Web3Provider(window.ethereum);
-
-    signer = provider.getSigner();
-
-    await window.ethereum.request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: "0x2105" }]
-    });
-
-    contract =
+    const readContract =
       new ethers.Contract(
         contractAddress,
         abi,
-        signer
+        readProvider
       );
 
-    alert("Wallet Connected ✅");
+    // 🔹 Connect Wallet
+    async function connectWallet() {
 
-  } catch (err) {
-    console.error(err);
-    alert(err.message);
-  }
-}
+      if (!window.ethereum) {
 
-// 🚨 Blocked words
-const blockedWords = [
+        alert("Install MetaMask");
+        return;
+      }
 
-  // violence
-  "kill",
-  "murder",
-  "bomb",
-  "terror",
-  "shoot",
-  "stab",
-  "kidnap",
+      try {
 
-  // sexual abuse
-  "rape",
-  "pedo",
-  "pedophile",
+        await window.ethereum.request({
+          method: "eth_requestAccounts"
+        });
 
-  // self-harm
-  "suicide",
-  "selfharm",
+        provider =
+          new ethers.providers.Web3Provider(window.ethereum);
 
-  // explicit/profanity
-  "fuck",
-  "bitch",
-  "sex",
-  "anal",
+        signer = provider.getSigner();
 
-  // slurs
-  "nigga",
-  "nigger",
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: "0x2105" }]
+        });
 
-  // extremist abuse
-  "genocide"
-];
+        contract =
+          new ethers.Contract(
+            contractAddress,
+            abi,
+            signer
+          );
 
-// 🧼 Normalize text
-function normalizeMessage(text) {
+        alert("Wallet Connected ✅");
 
-  return text
+      } catch (err) {
 
-    .toLowerCase()
-
-    // convert number tricks
-    .replace(/4/g, "a")
-    .replace(/1/g, "i")
-    .replace(/3/g, "e")
-    .replace(/0/g, "o")
-    .replace(/5/g, "s")
-    .replace(/7/g, "t")
-
-    // remove spaces
-    .replace(/\s+/g, "")
-
-    // remove symbols
-    .replace(/[^a-z0-9]/g, "")
-
-    // reduce repeated letters
-    .replace(/(.)\1+/g, "$1");
-}
-
-// 🔹 Post confession
-async function postConfession() {
-
-  if (!contract) {
-    alert("Connect wallet first");
-    return;
-  }
-
-  const msg =
-    document.getElementById("message").value.trim();
-
-  if (!msg) {
-    alert("Write something first");
-    return;
-  }
-
-  // ✍️ Max 200 characters
-  if (msg.length > 200) {
-
-    alert(
-      "Maximum 200 characters allowed"
-    );
-
-    return;
-  }
-
-  // 🌍 English-like text only
-  const englishOnly =
-    /^[a-zA-Z0-9\s.,!?'"()-]+$/;
-
-  if (!englishOnly.test(msg)) {
-
-    alert(
-      "Only standard English text is allowed currently"
-    );
-
-    return;
-  }
-
-  // 🧼 Clean text
-  const cleanedMsg =
-    normalizeMessage(msg);
-
-  // 🚨 Block bad words
-  for (const word of blockedWords) {
-
-    if (cleanedMsg.includes(word)) {
-
-      alert(
-        "Restricted words detected"
-      );
-
-      return;
-    }
-  }
-
-  // ⏳ Cooldown system
-  const now = Date.now();
-
-  const lastPostTime =
-    localStorage.getItem("lastPostTime");
-
-  if (
-    lastPostTime &&
-    now - lastPostTime < 60000
-  ) {
-
-    alert(
-      "Please wait 1 minute before posting again"
-    );
-
-    return;
-  }
-
-  // 🚫 Duplicate prevention
-  let recentPosts =
-    JSON.parse(
-      localStorage.getItem("recentPosts")
-    ) || [];
-
-  if (
-    recentPosts.includes(cleanedMsg)
-  ) {
-
-    alert(
-      "Duplicate messages are not allowed"
-    );
-
-    return;
-  }
-
-  try {
-
-    const tx =
-      await contract.postConfession(msg, {
-        value: ethers.utils.parseEther("0.00001")
-      });
-
-    await tx.wait();
-
-    // 💾 Save cooldown
-    localStorage.setItem(
-      "lastPostTime",
-      now
-    );
-
-    // 💾 Save recent posts
-    recentPosts.push(cleanedMsg);
-
-    if (recentPosts.length > 5) {
-      recentPosts.shift();
-    }
-
-    localStorage.setItem(
-      "recentPosts",
-      JSON.stringify(recentPosts)
-    );
-
-    document.getElementById("message").value = "";
-
-    await loadConfessions();
-
-  } catch (err) {
-    console.error(err);
-    alert("Transaction failed");
-  }
-}
-
-// ⏱ Time formatter
-function formatTime(ts) {
-
-  const now =
-    Math.floor(Date.now() / 1000);
-
-  const diff = now - ts;
-
-  if (diff < 60)
-    return "Just now";
-
-  if (diff < 3600) {
-
-    const m =
-      Math.floor(diff / 60);
-
-    return m + (m === 1
-      ? " min ago"
-      : " mins ago");
-  }
-
-  if (diff < 86400) {
-
-    const h =
-      Math.floor(diff / 3600);
-
-    return h + (h === 1
-      ? " hour ago"
-      : " hours ago");
-  }
-
-  if (diff < 2592000) {
-
-    const d =
-      Math.floor(diff / 86400);
-
-    return d + (d === 1
-      ? " day ago"
-      : " days ago");
-  }
-
-  const y =
-    Math.floor(diff / 31536000);
-
-  return y + (y === 1
-    ? " year ago"
-    : " years ago");
-}
-
-// 🫧 Load bubbles
-async function loadConfessions() {
-
-  try {
-
-    const total =
-      await readContract.getTotalConfessions();
-
-    const list =
-      document.getElementById("confessionList");
-
-    list.innerHTML = "";
-
-    const promises = [];
-    const randomIndexes = [];
-
-    const batchSize =
-      Math.min(50, total);
-
-    while (
-      randomIndexes.length < batchSize
-    ) {
-
-      const randomIndex =
-        Math.floor(Math.random() * total);
-
-      if (
-        !randomIndexes.includes(randomIndex)
-      ) {
-        randomIndexes.push(randomIndex);
+        console.error(err);
+        alert(err.message);
       }
     }
 
-    for (const i of randomIndexes) {
+    // 🚨 Blocked words
+    const blockedWords = [
 
-      promises.push(
-        readContract.confessions(i)
-      );
+      "kill",
+      "murder",
+      "bomb",
+      "terror",
+      "shoot",
+      "stab",
+      "kidnap",
+
+      "rape",
+      "pedo",
+      "pedophile",
+
+      "suicide",
+      "selfharm",
+
+      "fuck",
+      "bitch",
+      "sex",
+      "anal",
+
+      "nigga",
+      "nigger",
+
+      "genocide"
+    ];
+
+    // 🧼 Normalize text
+    function normalizeMessage(text) {
+
+      return text
+
+        .toLowerCase()
+
+        .replace(/4/g, "a")
+        .replace(/1/g, "i")
+        .replace(/3/g, "e")
+        .replace(/0/g, "o")
+        .replace(/5/g, "s")
+        .replace(/7/g, "t")
+
+        .replace(/\s+/g, "")
+
+        .replace(/[^a-z0-9]/g, "")
+
+        .replace(/(.)\1+/g, "$1");
     }
 
-    const results =
-      await Promise.all(promises);
+    // 🔢 Character counter
+    const messageInput =
+      document.getElementById("message");
 
-    const placedBubbles = [];
+    const charCounter =
+      document.getElementById("charCounter");
 
-    results.forEach((c) => {
+    messageInput.addEventListener("input", () => {
 
-      const div =
-        document.createElement("div");
+      const length =
+        messageInput.value.length;
 
-      // 🫧 Random bubble size
-      const size =
-        Math.floor(Math.random() * 50) + 70;
+      charCounter.innerText =
+        `${length} / 200`;
 
-      div.style.width = size + "px";
-      div.style.height = size + "px";
+      if (length > 180) {
 
-      // 🫧 Position
-      div.style.position = "absolute";
+        charCounter.style.color =
+          "#ef4444";
 
-      const maxX =
-        window.innerWidth - size - 60;
+      } else {
 
-      const maxY =
-        window.innerHeight - size - 260;
+        charCounter.style.color =
+          "#64748b";
+      }
+    });
 
-      let x, y;
-      let overlapping;
+    // 🔹 Post confession
+    async function postConfession() {
 
-      do {
+      if (!contract) {
 
-        overlapping = false;
+        alert("Connect wallet first");
+        return;
+      }
 
-        x = Math.random() * maxX;
-        y = Math.random() * (maxY - 120) + 120;
+      const msg =
+        document.getElementById("message")
+        .value
+        .trim();
 
-        for (const bubble of placedBubbles) {
+      if (!msg) {
 
-          const dx = bubble.x - x;
-          const dy = bubble.y - y;
+        alert("Write something first");
+        return;
+      }
 
-          const distance =
-            Math.sqrt(dx * dx + dy * dy);
+      // ✍️ Character limit
+      if (msg.length > 200) {
+
+        alert(
+          "Maximum 200 characters allowed"
+        );
+
+        return;
+      }
+
+      // 🌍 English only
+      const englishOnly =
+        /^[a-zA-Z0-9\s.,!?'"()-]+$/;
+
+      if (!englishOnly.test(msg)) {
+
+        alert(
+          "Only standard English text is allowed currently"
+        );
+
+        return;
+      }
+
+      // 🧼 Clean message
+      const cleanedMsg =
+        normalizeMessage(msg);
+
+      // 🚨 Block banned words
+      for (const word of blockedWords) {
+
+        if (cleanedMsg.includes(word)) {
+
+          alert(
+            "Restricted words detected"
+          );
+
+          return;
+        }
+      }
+
+      // ⏳ Cooldown
+      const now = Date.now();
+
+      const lastPostTime =
+        localStorage.getItem("lastPostTime");
+
+      if (
+        lastPostTime &&
+        now - lastPostTime < 60000
+      ) {
+
+        alert(
+          "Please wait 1 minute before posting again"
+        );
+
+        return;
+      }
+
+      // 🚫 Duplicate prevention
+      let recentPosts =
+        JSON.parse(
+          localStorage.getItem("recentPosts")
+        ) || [];
+
+      if (
+        recentPosts.includes(cleanedMsg)
+      ) {
+
+        alert(
+          "Duplicate messages are not allowed"
+        );
+
+        return;
+      }
+
+      try {
+
+        const tx =
+          await contract.postConfession(msg, {
+            value:
+              ethers.utils.parseEther("0.00001")
+          });
+
+        await tx.wait();
+
+        // 💾 Save cooldown
+        localStorage.setItem(
+          "lastPostTime",
+          now
+        );
+
+        // 💾 Save recent posts
+        recentPosts.push(cleanedMsg);
+
+        if (recentPosts.length > 5) {
+          recentPosts.shift();
+        }
+
+        localStorage.setItem(
+          "recentPosts",
+          JSON.stringify(recentPosts)
+        );
+
+        document.getElementById("message").value = "";
+
+        charCounter.innerText = "0 / 200";
+
+        await loadConfessions();
+
+      } catch (err) {
+
+        console.error(err);
+        alert("Transaction failed");
+      }
+    }
+
+    // ⏱ Time formatter
+    function formatTime(ts) {
+
+      const now =
+        Math.floor(Date.now() / 1000);
+
+      const diff = now - ts;
+
+      if (diff < 60)
+        return "Just now";
+
+      if (diff < 3600) {
+
+        const m =
+          Math.floor(diff / 60);
+
+        return m +
+          (m === 1
+            ? " min ago"
+            : " mins ago");
+      }
+
+      if (diff < 86400) {
+
+        const h =
+          Math.floor(diff / 3600);
+
+        return h +
+          (h === 1
+            ? " hour ago"
+            : " hours ago");
+      }
+
+      if (diff < 2592000) {
+
+        const d =
+          Math.floor(diff / 86400);
+
+        return d +
+          (d === 1
+            ? " day ago"
+            : " days ago");
+      }
+
+      const y =
+        Math.floor(diff / 31536000);
+
+      return y +
+        (y === 1
+          ? " year ago"
+          : " years ago");
+    }
+
+    // 🫧 Load confessions
+    async function loadConfessions() {
+
+      try {
+
+        const total =
+          await readContract.getTotalConfessions();
+
+        const list =
+          document.getElementById("confessionList");
+
+        list.innerHTML = "";
+
+        const promises = [];
+        const randomIndexes = new Set();
+
+        const batchSize =
+          Math.min(50, total);
+
+        while (
+          randomIndexes.length < batchSize
+        ) {
+
+          const randomIndex =
+            Math.floor(Math.random() * total);
 
           if (
-            distance <
-            (bubble.size / 2 + size / 2 + 25)
+            !randomIndexes.includes(randomIndex)
           ) {
-            overlapping = true;
-            break;
+            randomIndexes.add(randomIndex);
           }
         }
 
-      } while (overlapping);
+        for (const i of randomIndexes) {
 
-      placedBubbles.push({
-        x,
-        y,
-        size
-      });
-
-      div.style.left = x + "px";
-      div.style.top = y + "px";
-
-      // 🫧 Bubble appearance
-      div.style.borderRadius = "50%";
-
-      div.style.display = "flex";
-      div.style.alignItems = "center";
-      div.style.justifyContent = "center";
-
-      div.style.textAlign = "center";
-      div.style.cursor = "pointer";
-
-      div.style.padding = "15px";
-
-      div.style.background =
-        "radial-gradient(circle at 30% 30%, rgba(191,219,254,0.9), rgba(147,197,253,0.18), rgba(255,255,255,0.08))";
-
-      div.style.backdropFilter =
-        "blur(14px)";
-
-      div.style.border =
-        "1px solid rgba(148,163,184,0.25)";
-
-      div.style.boxShadow =
-        `
-        0 0 20px rgba(59,130,246,0.18),
-        0 0 35px rgba(168,85,247,0.12),
-        0 0 50px rgba(236,72,153,0.08)
-        `;
-
-      div.style.transition = "0.3s";
-
-      // ✨ Floating
-      div.style.animation =
-        `floatBubble ${Math.random() * 4 + 4}s ease-in-out infinite`;
-
-      // 🫧 Default dot
-      div.innerHTML = `
-        <div style="
-          width:12px;
-          height:12px;
-          border-radius:50%;
-          background:rgba(255,255,255,0.7);
-          box-shadow:
-            0 0 10px rgba(59,130,246,0.5),
-            0 0 18px rgba(168,85,247,0.25);
-        ">
-        </div>
-      `;
-
-      // ✨ Hover
-      div.onmouseenter = () => {
-        div.style.transform = "scale(1.08)";
-      };
-
-      div.onmouseleave = () => {
-        div.style.transform = "scale(1)";
-      };
-
-      // 🔓 Reveal
-      let revealed = false;
-
-      div.onclick = () => {
-
-        revealed = !revealed;
-
-        // 🔓 OPEN
-        if (revealed) {
-
-          div.style.animation =
-            "burstBubble 0.35s ease";
-
-          setTimeout(() => {
-
-            div.style.animation =
-              `floatBubble ${Math.random() * 4 + 4}s ease-in-out infinite`;
-
-            div.innerHTML = `
-              <div style="
-                padding:10px;
-                color:#111827;
-              ">
-                <p style="
-                  font-size:13px;
-                  margin:0;
-                  word-break:break-word;
-                  line-height:1.4;
-                ">
-                  ${c[0]}
-                </p>
-
-                <br>
-
-                <small style="
-                  opacity:0.7;
-                  font-size:10px;
-                ">
-                  ${formatTime(c[1])}
-                </small>
-              </div>
-            `;
-
-          }, 250);
+          promises.push(
+            readContract.confessions(i)
+          );
         }
 
-        // 🔒 CLOSE
-        else {
+        const results =
+          await Promise.all(promises);
 
-          div.style.animation =
-            "burstBubble 0.35s ease";
+        const placedBubbles = [];
 
-          setTimeout(() => {
+        results.forEach((c) => {
 
-            div.style.animation =
-              `floatBubble ${Math.random() * 4 + 4}s ease-in-out infinite`;
+          const div =
+            document.createElement("div");
 
-            div.innerHTML = `
-              <div style="
-                width:12px;
-                height:12px;
-                border-radius:50%;
-                background:rgba(255,255,255,0.7);
-                box-shadow:
-                  0 0 10px rgba(59,130,246,0.5),
-                  0 0 18px rgba(168,85,247,0.25);
-              ">
-              </div>
+          // 🫧 Bubble size
+          const size =
+            Math.floor(Math.random() * 50) + 70;
+
+          div.style.width = size + "px";
+          div.style.height = size + "px";
+
+          div.style.position = "absolute";
+
+          const maxX =
+            window.innerWidth - size - 60;
+
+          const maxY =
+            window.innerHeight - size - 260;
+
+          let x, y;
+          let overlapping;
+
+          do {
+
+            overlapping = false;
+
+            x = Math.random() * maxX;
+            y = Math.random() * (maxY - 120) + 120;
+
+            for (const bubble of placedBubbles) {
+
+              const dx = bubble.x - x;
+              const dy = bubble.y - y;
+
+              const distance =
+                Math.sqrt(dx * dx + dy * dy);
+
+              if (
+                distance <
+                (bubble.size / 2 + size / 2 + 25)
+              ) {
+
+                overlapping = true;
+                break;
+              }
+            }
+
+          } while (overlapping);
+
+          placedBubbles.push({
+            x,
+            y,
+            size
+          });
+
+          div.style.left = x + "px";
+          div.style.top = y + "px";
+
+          // 🫧 Bubble style
+          div.style.borderRadius = "50%";
+
+          div.style.display = "flex";
+          div.style.alignItems = "center";
+          div.style.justifyContent = "center";
+
+          div.style.textAlign = "center";
+
+          div.style.cursor = "pointer";
+
+          div.style.padding = "15px";
+
+          div.style.background = `
+          radial-gradient(
+            circle at 30% 30%,
+            rgba(255,255,255,0.55),
+            rgba(191,219,254,0.22),
+            rgba(147,197,253,0.08),
+            rgba(255,255,255,0.03)
+          )
+          `;
+
+          div.style.backdropFilter =
+            "blur(14px)";
+
+          div.style.border =
+            "1.5px solid rgba(255,255,255,0.35)";
+
+          div.style.boxShadow =
+            `
+            0 0 20px rgba(59,130,246,0.18),
+            0 0 35px rgba(168,85,247,0.12),
+            0 0 50px rgba(236,72,153,0.08)
             `;
 
-          }, 250);
-        }
-      };
+          div.style.transition = "0.3s";
 
-      list.appendChild(div);
+          div.style.overflow = "hidden";
 
-    });
+          // ✨ Floating
+          div.style.animation =
+            `floatBubble ${Math.random() * 4 + 4}s ease-in-out infinite`;
 
-  } catch (err) {
-    console.error(err);
-  }
-}
+          // 🫧 Empty bubble
+          div.innerHTML = "";
 
-// 🔁 Auto connect
-async function autoConnect() {
+          // ✨ Hover
+          div.onmouseenter = () => {
+            div.style.transform = "scale(1.08)";
+          };
 
-  if (!window.ethereum)
-    return;
+          div.onmouseleave = () => {
+            div.style.transform = "scale(1)";
+          };
 
-  const accounts =
-    await window.ethereum.request({
-      method: "eth_accounts"
-    });
+          // 🔓 Reveal
+          let revealed = false;
 
-  if (accounts.length > 0) {
+          div.onclick = () => {
 
-    provider =
-      new ethers.providers.Web3Provider(window.ethereum);
+            revealed = !revealed;
 
-    signer = provider.getSigner();
+            // 🔓 OPEN
+            if (revealed) {
 
-    const network =
-      await provider.getNetwork();
+              div.style.animation =
+                "burstBubble 0.35s ease";
 
-    if (network.chainId !== 8453)
-      return;
+              setTimeout(() => {
 
-    contract =
-      new ethers.Contract(
-        contractAddress,
-        abi,
-        signer
+                div.style.animation =
+                  `floatBubble ${Math.random() * 4 + 4}s ease-in-out infinite`;
+
+                div.innerHTML = `
+                  <div style="
+                    padding:10px;
+                    color:#111827;
+                    animation: fadeIn 0.5s ease;
+                  ">
+                    <p style="
+                      font-size:13px;
+                      margin:0;
+                      word-break:break-word;
+                      line-height:1.4;
+                    ">
+                      ${c[0]}
+                    </p>
+
+                    <br>
+
+                    <small style="
+                      opacity:0.7;
+                      font-size:10px;
+                    ">
+                      ${formatTime(c[1])}
+                    </small>
+                  </div>
+                `;
+
+              }, 250);
+
+              // ⏳ Auto fade after reading
+              setTimeout(() => {
+
+                if (revealed) {
+
+                  div.style.transition =
+                    "opacity 6s ease";
+
+                  div.style.opacity = "0";
+
+                  setTimeout(() => {
+
+                    revealed = false;
+
+                    div.style.opacity = "1";
+                    div.style.transition = "0.3s";
+
+                    div.innerHTML = "";
+
+                  }, 6000);
+                }
+
+              }, 35000);
+            }
+
+            // 🔒 CLOSE
+            else {
+
+              div.style.animation =
+                "burstBubble 0.35s ease";
+
+              setTimeout(() => {
+
+                div.style.animation =
+                  `floatBubble ${Math.random() * 4 + 4}s ease-in-out infinite`;
+
+                div.innerHTML = "";
+
+              }, 250);
+            }
+          };
+
+          list.appendChild(div);
+        });
+
+      } catch (err) {
+
+        console.error(err);
+      }
+    }
+
+    // 🔁 Auto connect
+    async function autoConnect() {
+
+      if (!window.ethereum)
+        return;
+
+      const accounts =
+        await window.ethereum.request({
+          method: "eth_accounts"
+        });
+
+      if (accounts.length > 0) {
+
+        provider =
+          new ethers.providers.Web3Provider(window.ethereum);
+
+        signer = provider.getSigner();
+
+        const network =
+          await provider.getNetwork();
+
+        if (network.chainId !== 8453)
+          return;
+
+        contract =
+          new ethers.Contract(
+            contractAddress,
+            abi,
+            signer
+          );
+      }
+    }
+
+    // 🚀 Start
+    window.onload = async () => {
+
+      await loadConfessions();
+
+      await autoConnect();
+    };
+
+    // 🔁 Wallet events
+    if (window.ethereum) {
+
+      window.ethereum.on(
+        "accountsChanged",
+        autoConnect
       );
-  }
-}
 
-// 🚀 Start
-window.onload = async () => {
-  // 🔢 Character counter
-const messageInput =
-  document.getElementById("message");
+      window.ethereum.on(
+        "chainChanged",
+        () => window.location.reload()
+      );
+    }
 
-const charCounter =
-  document.getElementById("charCounter");
-
-messageInput.addEventListener("input", () => {
-
-  const length =
-    messageInput.value.length;
-
-  charCounter.innerText =
-    `${length} / 200`;
-
-  // 🔴 turn red near limit
-  if (length > 180) {
-
-    charCounter.style.color =
-      "#ef4444";
-
-  } else {
-
-    charCounter.style.color =
-      "#64748b";
-  }
-});
-
-  await loadConfessions();
-
-  await autoConnect();
-};
-
-// 🔁 Wallet events
-if (window.ethereum) {
-
-  window.ethereum.on(
-    "accountsChanged",
-    autoConnect
-  );
-
-  window.ethereum.on(
-    "chainChanged",
-    () => window.location.reload()
-  );
-}
-
-</script>
+  </script>
 
 </body>
 </html>
