@@ -135,7 +135,7 @@
     id="charCounter"
     style="color:#64748b;"
   >
-    0 / 200
+    0 / 100
   </small>
 
   <br><br>
@@ -275,30 +275,30 @@
 
     messageInput.addEventListener("input", () => {
 
-      // ✂️ stop at 200
+      // ✂️ stop at 100
       if (
-        messageInput.value.length > 200
+        messageInput.value.length > 100
       ) {
 
         messageInput.value =
-          messageInput.value.slice(0, 200);
+          messageInput.value.slice(0, 100);
       }
 
       const length =
         messageInput.value.length;
 
       charCounter.innerText =
-        `${length} / 200`;
+        `${length} / 100`;
 
       // ⚪ normal
-      if (length < 180) {
+      if (length < 80) {
 
         charCounter.style.color =
           "#64748b";
       }
 
       // 🟡 warning
-      else if (length < 200) {
+      else if (length < 100) {
 
         charCounter.style.color =
           "#eab308";
