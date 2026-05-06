@@ -210,7 +210,7 @@ async function loadConfessions() {
 
       // 🫧 Random size
       const size =
-        Math.floor(Math.random() * 120) + 120;
+        Math.floor(Math.random() * 50) + 70;
 
       div.style.width = size + "px";
       div.style.height = size + "px";
@@ -237,7 +237,7 @@ async function loadConfessions() {
       div.style.padding = "15px";
 
       div.style.background =
-        "rgba(255,255,255,0.08)";
+   "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18), rgba(255,255,255,0.05))";
 
       div.style.backdropFilter =
         "blur(8px)";
@@ -256,11 +256,10 @@ async function loadConfessions() {
 
       // 👀 Default text
       div.innerHTML = `
-        <div>
-          🫧<br>
-          Tap to Reveal
-        </div>
-      `;
+     <div style="font-size:22px;">
+    🫧
+    </div>
+   `;
 
       // ✨ Hover effect
       div.onmouseenter = () => {
@@ -303,12 +302,11 @@ async function loadConfessions() {
 
         } else {
 
-          div.innerHTML = `
-            <div>
-              🫧<br>
-              Tap to Reveal
-            </div>
-          `;
+           div.innerHTML = `
+         <div style="font-size:22px;">
+          🫧
+        </div>
+       `;
         }
       };
 
