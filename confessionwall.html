@@ -154,6 +154,75 @@ async function connectWallet() {
   }
 }
 
+// 🚨 Hard blocked words
+const blockedWords = [
+
+  // violence
+  "kill",
+  "murder",
+  "bomb",
+  "terror",
+  "shoot",
+  "stab",
+  "kidnap",
+
+  // sexual abuse
+  "rape",
+  "pedo",
+
+  // self-harm
+  "suicide",
+  "selfharm",
+
+  // extremist abuse
+  "genocide"
+];
+
+// ⚠️ Warning words
+const warningWords = [
+
+  // profanity
+  "fuck",
+  "bitch",
+
+  // sexual
+  "sex",
+  "anal",
+
+  // insults
+  "bitch",
+  "nigger",
+  "pedophile",
+
+  // slurs
+  "nigga"
+];
+
+// 🧼 Normalize text
+function normalizeMessage(text) {
+
+  return text
+
+    .toLowerCase()
+
+    // convert common number tricks
+    .replace(/4/g, "a")
+    .replace(/1/g, "i")
+    .replace(/3/g, "e")
+    .replace(/0/g, "o")
+    .replace(/5/g, "s")
+    .replace(/7/g, "t")
+
+    // remove spaces
+    .replace(/\s+/g, "")
+
+    // remove symbols
+    .replace(/[^a-z0-9]/g, "")
+
+    // reduce repeated letters
+    .replace(/(.)\1+/g, "$1");
+}
+  
 // 🔹 Post confession
 async function postConfession() {
 
@@ -164,6 +233,60 @@ async function postConfession() {
 
   const msg =
     document.getElementById("message").value;
+  // ✍️ Character limit
+if (msg.length > 200) {
+
+  alert(
+    "Maximum 200 characters allowed"
+  );
+
+  return;
+}
+
+// 🌍 English-like text only
+const englishOnly =
+  /^[a-zA-Z0-9\s.,!?'"()-]+$/;
+
+if (!englishOnly.test(msg)) {
+
+  alert(
+    "Only standard English text is allowed currently"
+  );
+
+  return;
+}
+
+// 🧼 Clean message
+const cleanedMsg =
+  normalizeMessage(msg);
+
+// 🚨 Hard block check
+for (const word of blockedWords) {
+
+  if (cleanedMsg.includes(word)) {
+
+    alert(
+      "Restricted words detected"
+    );
+
+    return;
+  }
+}
+
+// ⚠️ Warning check
+for (const word of warningWords) {
+
+  if (cleanedMsg.includes(word)) {
+
+    const proceed =
+      confirm(
+        "This message may violate community safety. Continue?"
+      );
+
+    if (!proceed)
+      return;
+  }
+}
 
   if (!msg) {
     alert("Write something first");
