@@ -65,7 +65,7 @@
 <button onclick="connectWallet()" style="padding:8px 12px;">
   Connect Wallet
 </button>
-
+  
 <br><br>
 
 <input
@@ -77,6 +77,18 @@
 <button onclick="postConfession()" style="padding:10px;">
   Post
 </button>
+  <br><br>
+
+<small
+  id="charCounter"
+  style="
+    position:relative;
+    z-index:10;
+    color:#64748b;
+  "
+>
+  0 / 200
+</small>
 
 <br><br>
 
@@ -670,6 +682,33 @@ async function autoConnect() {
 
 // 🚀 Start
 window.onload = async () => {
+  // 🔢 Character counter
+const messageInput =
+  document.getElementById("message");
+
+const charCounter =
+  document.getElementById("charCounter");
+
+messageInput.addEventListener("input", () => {
+
+  const length =
+    messageInput.value.length;
+
+  charCounter.innerText =
+    `${length} / 200`;
+
+  // 🔴 turn red near limit
+  if (length > 180) {
+
+    charCounter.style.color =
+      "#ef4444";
+
+  } else {
+
+    charCounter.style.color =
+      "#64748b";
+  }
+});
 
   await loadConfessions();
 
