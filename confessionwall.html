@@ -183,9 +183,6 @@
   <!-- ✅ Web3Modal -->
   <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
 
-  <!-- ✅ WalletConnect -->
-  <script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
-
   <!-- ✅ Coinbase/Base Wallet -->
   <script src="https://unpkg.com/@coinbase/wallet-sdk@3.9.3/dist/CoinbaseWalletSDK.min.js"></script>
 
@@ -230,42 +227,82 @@
 
         const providerOptions = {
 
-          walletconnect: {
+  // 🦊 MetaMask auto detected
 
-            package:
-              window.WalletConnectProvider.default,
+  // 🔵 Base Wallet
+  coinbasewalletsdk: {
 
-            options: {
+    package:
+      window.CoinbaseWalletSDK,
 
-              rpc: {
-                8453:
-                  "https://mainnet.base.org"
-              },
+    display: {
 
-              chainId: 8453
-            }
-          },
+      logo:
+        "https://avatars.githubusercontent.com/u/1885080?s=280&v=4",
 
-          coinbasewalletsdk: {
+      name:
+        "Base Wallet",
 
-            package:
-              window.CoinbaseWalletSDK,
+      description:
+        "Connect with Base Wallet"
+    },
 
-            options: {
+    options: {
 
-              appName:
-                "Anonymous Confession Wall",
+      appName:
+        "Anonymous Confession Wall",
 
-              rpc:
-                "https://mainnet.base.org",
+      rpc:
+        "https://mainnet.base.org",
 
-              chainId: 8453,
+      chainId: 8453,
 
-              darkMode: true
-            }
-          }
-        };
+      darkMode: true
+    }
+  },
 
+  // ⚫ OKX Wallet
+  okxwallet: {
+
+    package: true,
+
+    display: {
+
+      logo:
+        "https://static.okx.com/cdn/assets/imgs/247/58E63FEA47A2B7D7.png",
+
+      name:
+        "OKX Wallet",
+
+      description:
+        "Connect with OKX Wallet"
+    },
+
+    connector: async () => {
+
+      if (!window.okxwallet) {
+
+        window.open(
+          "https://www.okx.com/web3",
+          "_blank"
+        );
+
+        throw new Error(
+          "OKX Wallet not installed"
+        );
+      }
+
+      const provider =
+        window.okxwallet;
+
+      await provider.request({
+        method: "eth_requestAccounts"
+      });
+
+      return provider;
+    }
+  }
+};
         const web3Modal =
           new window.Web3Modal.default({
 
