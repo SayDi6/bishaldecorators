@@ -67,7 +67,7 @@
       }
     }
 
-    /* 💥 Burst animation */
+    /* 💥 Burst */
     @keyframes burstBubble {
 
       0% {
@@ -107,12 +107,43 @@
 
   <h2>🕵️ Anonymous Confession Wall</h2>
 
-  <button
-    onclick="connectWallet()"
-    style="padding:8px 12px;"
-  >
-    Connect Wallet
-  </button>
+  <div style="
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  ">
+
+    <button
+      onclick="connectWallet()"
+      style="
+        padding:10px 14px;
+        border:none;
+        border-radius:10px;
+        cursor:pointer;
+        background:#111827;
+        color:white;
+        font-weight:bold;
+      "
+    >
+      Connect Wallet
+    </button>
+
+    <button
+      onclick="connectBaseWallet()"
+      style="
+        padding:10px 14px;
+        border:none;
+        border-radius:10px;
+        cursor:pointer;
+        background:#0052ff;
+        color:white;
+        font-weight:bold;
+      "
+    >
+      Base Wallet
+    </button>
+
+  </div>
 
   <br><br>
 
@@ -218,18 +249,6 @@
             package:
               window.CoinbaseWalletSDK,
 
-            display: {
-
-              logo:
-                "https://avatars.githubusercontent.com/u/1885080?s=280&v=4",
-
-              name:
-                "Base Wallet",
-
-              description:
-                "Connect with Base Wallet"
-            },
-
             options: {
 
               appName:
@@ -255,12 +274,13 @@
             theme: "dark"
           });
 
-        // 🪄 Open popup
         const connection =
           await web3Modal.connect();
 
         provider =
-          new ethers.providers.Web3Provider(connection);
+          new ethers.providers.Web3Provider(
+            connection
+          );
 
         signer =
           provider.getSigner();
@@ -268,7 +288,7 @@
         const network =
           await provider.getNetwork();
 
-        // 🔄 Switch Base Mainnet
+        // 🔄 Switch Base
         if (network.chainId !== 8453) {
 
           await provider.send(
@@ -297,6 +317,55 @@
       } finally {
 
         connectingWallet = false;
+      }
+    }
+
+    // 🔵 Connect Base Wallet directly
+    async function connectBaseWallet() {
+
+      try {
+
+        const coinbaseWallet =
+          new window.CoinbaseWalletSDK({
+
+            appName:
+              "Anonymous Confession Wall",
+
+            darkMode: true
+          });
+
+        const ethereum =
+          coinbaseWallet.makeWeb3Provider(
+            "https://mainnet.base.org",
+            8453
+          );
+
+        await ethereum.enable();
+
+        provider =
+          new ethers.providers.Web3Provider(
+            ethereum
+          );
+
+        signer =
+          provider.getSigner();
+
+        contract =
+          new ethers.Contract(
+            contractAddress,
+            abi,
+            signer
+          );
+
+        alert("Base Wallet Connected ✅");
+
+      } catch (err) {
+
+        console.error(err);
+
+        alert(
+          "Base Wallet connection failed"
+        );
       }
     }
 
