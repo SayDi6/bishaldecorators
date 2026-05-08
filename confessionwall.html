@@ -106,7 +106,7 @@
 
 <body>
 
-  <h2>🕵️ Anonymous Confession Wall</h2>
+  <h2> Anonymous Confession Wall</h2>
 
   <button
     onclick="connectWallet()"
@@ -164,6 +164,7 @@
     let provider;
     let signer;
     let contract;
+    let connectingWallet = false;
 
     // 🌐 Public provider
     const readProvider =
@@ -178,8 +179,13 @@
         readProvider
       );
 
-    // 🔹 Connect Wallet with popup
+    // 🔹 Connect Wallet safely
 async function connectWallet() {
+
+  // 🚫 prevent multiple popups
+  if (connectingWallet) return;
+
+  connectingWallet = true;
 
   try {
 
@@ -200,7 +206,7 @@ async function connectWallet() {
     const network =
       await provider.getNetwork();
 
-    // 🔄 Switch to Base Mainnet
+    // 🔄 Switch to Base
     if (network.chainId !== 8453) {
 
       await provider.send(
@@ -221,7 +227,14 @@ async function connectWallet() {
   } catch (err) {
 
     console.error(err);
-    alert("Wallet connection failed");
+
+    alert(
+      "Wallet connection cancelled or failed"
+    );
+
+  } finally {
+
+    connectingWallet = false;
   }
 }
 
