@@ -146,9 +146,9 @@
   <div id="confessionList"></div>
 
   <!-- ethers -->
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.12/dist/index.min.js"></script>
+  <script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
 
   <script>
 
@@ -179,22 +179,43 @@
         readProvider
       );
 
-    // 🔹 Connect Wallet safely
+    // 🔹 Connect Wallet with popup selector
 async function connectWallet() {
 
-  // 🚫 prevent multiple popups
   if (connectingWallet) return;
 
   connectingWallet = true;
 
   try {
 
+    const providerOptions = {
+
+      walletconnect: {
+
+        package: window.WalletConnectProvider.default,
+
+        options: {
+
+          rpc: {
+            8453: "https://mainnet.base.org"
+          },
+
+          chainId: 8453
+        }
+      }
+    };
+
     const web3Modal =
       new window.Web3Modal.default({
 
-        cacheProvider: false
+        cacheProvider: false,
+
+        providerOptions,
+
+        theme: "dark"
       });
 
+    // 🪄 THIS opens popup selector
     const connection =
       await web3Modal.connect();
 
@@ -206,7 +227,7 @@ async function connectWallet() {
     const network =
       await provider.getNetwork();
 
-    // 🔄 Switch to Base
+    // 🔄 Switch Base
     if (network.chainId !== 8453) {
 
       await provider.send(
