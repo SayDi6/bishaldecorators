@@ -146,7 +146,9 @@
   <div id="confessionList"></div>
 
   <!-- ethers -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.12/dist/index.min.js"></script>
 
   <script>
 
@@ -176,46 +178,52 @@
         readProvider
       );
 
-    // 🔹 Connect wallet
-    async function connectWallet() {
+    // 🔹 Connect Wallet with popup
+async function connectWallet() {
 
-      if (!window.ethereum) {
+  try {
 
-        alert("Install MetaMask");
-        return;
-      }
+    const web3Modal =
+      new window.Web3Modal.default({
 
-      try {
+        cacheProvider: false
+      });
 
-        await window.ethereum.request({
-          method: "eth_requestAccounts"
-        });
+    const connection =
+      await web3Modal.connect();
 
-        provider =
-          new ethers.providers.Web3Provider(window.ethereum);
+    provider =
+      new ethers.providers.Web3Provider(connection);
 
-        signer = provider.getSigner();
+    signer = provider.getSigner();
 
-        await window.ethereum.request({
-          method: "wallet_switchEthereumChain",
-          params: [{ chainId: "0x2105" }]
-        });
+    const network =
+      await provider.getNetwork();
 
-        contract =
-          new ethers.Contract(
-            contractAddress,
-            abi,
-            signer
-          );
+    // 🔄 Switch to Base Mainnet
+    if (network.chainId !== 8453) {
 
-        alert("Wallet Connected ✅");
-
-      } catch (err) {
-
-        console.error(err);
-        alert(err.message);
-      }
+      await provider.send(
+        "wallet_switchEthereumChain",
+        [{ chainId: "0x2105" }]
+      );
     }
+
+    contract =
+      new ethers.Contract(
+        contractAddress,
+        abi,
+        signer
+      );
+
+    alert("Wallet Connected ✅");
+
+  } catch (err) {
+
+    console.error(err);
+    alert("Wallet connection failed");
+  }
+}
 
     // 🚨 Blocked words
     const blockedWords = [
