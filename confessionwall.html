@@ -155,11 +155,7 @@
   <!-- ✅ Ethers -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
-  <!-- ✅ Web3Modal -->
-  <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
-
-  <!-- ✅ Coinbase/Base Wallet -->
-  <script src="https://unpkg.com/@coinbase/wallet-sdk@3.9.3/dist/CoinbaseWalletSDK.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
   <script>
 
@@ -200,139 +196,122 @@
 
       try {
 
-        const providerOptions = {
+        <script type="module">
 
-          // 🔵 Base Wallet
-          coinbasewalletsdk: {
+import {
+  EthereumClient,
+  w3mConnectors,
+  w3mProvider
+} from 'https://unpkg.com/@web3modal/ethereum@2.7.1/dist/index.js'
 
-            package:
-              window.CoinbaseWalletSDK,
+import {
+  Web3Modal
+} from 'https://unpkg.com/@web3modal/html@2.7.1/dist/index.js'
 
-            display: {
+import {
+  configureChains,
+  createConfig
+} from 'https://esm.sh/wagmi'
 
-              logo:
-                "https://avatars.githubusercontent.com/u/1885080?s=280&v=4",
+import {
+  mainnet,
+  base
+} from 'https://esm.sh/wagmi/chains'
 
-              name:
-                "Base Wallet",
+const projectId =
+  '24a3a3aaa955599c699d8dcd73aa065a'
 
-              description:
-                "Connect with Base Wallet"
-            },
+const chains = [
+  mainnet,
+  base
+]
 
-            options: {
+const { publicClient } =
+  configureChains(chains, [
+    w3mProvider({ projectId })
+  ])
 
-              appName:
-                "Anonymous Confession Wall",
+const wagmiConfig =
+  createConfig({
 
-              rpc:
-                "https://mainnet.base.org",
+    autoConnect: true,
 
-              chainId: 8453,
+    connectors:
+      w3mConnectors({
+        projectId,
+        chains
+      }),
 
-              darkMode: true
-            }
-          },
+    publicClient
+  })
 
-          // ⚫ OKX Wallet
-          okxwallet: {
+const ethereumClient =
+  new EthereumClient(
+    wagmiConfig,
+    chains
+  )
 
-            display: {
+const modal =
+  new Web3Modal(
+    {
+      projectId,
+      themeMode: 'dark'
+    },
+    ethereumClient
+  )
 
-              logo:
-                "https://static.okx.com/cdn/assets/imgs/247/58E63FEA47A2B7D7.png",
+window.connectWallet =
+  async () => {
 
-              name:
-                "OKX Wallet",
+    try {
 
-              description:
-                "Connect with OKX Wallet"
-            },
+      await modal.openModal()
 
-            connector: async () => {
+      const provider =
+        await modal.getWalletProvider()
 
-              if (!window.okxwallet) {
+      if (!provider) return
 
-                window.open(
-                  "https://www.okx.com/web3",
-                  "_blank"
-                );
+      window.provider =
+        new ethers.providers.Web3Provider(
+          provider
+        )
 
-                throw new Error(
-                  "OKX Wallet not installed"
-                );
-              }
+      window.signer =
+        provider.getSigner()
 
-              const provider =
-                window.okxwallet;
+      window.contract =
+        new ethers.Contract(
+          contractAddress,
+          abi,
+          signer
+        )
 
-              await provider.request({
-                method: "eth_requestAccounts"
-              });
+      const network =
+        await provider.getNetwork()
 
-              return provider;
-            }
-          }
-        };
+      // 🔄 Switch Base
+      if (network.chainId !== 8453) {
 
-        const web3Modal =
-          new window.Web3Modal.default({
-
-            cacheProvider: false,
-
-            providerOptions,
-
-            theme: "dark",
-
-            disableInjectedProvider: true
-          });
-
-        // 🪄 Open popup
-        const connection =
-          await web3Modal.connect();
-
-        provider =
-          new ethers.providers.Web3Provider(
-            connection
-          );
-
-        signer =
-          provider.getSigner();
-
-        const network =
-          await provider.getNetwork();
-
-        // 🔄 Switch Base
-        if (network.chainId !== 8453) {
-
-          await provider.send(
-            "wallet_switchEthereumChain",
-            [{ chainId: "0x2105" }]
-          );
-        }
-
-        contract =
-          new ethers.Contract(
-            contractAddress,
-            abi,
-            signer
-          );
-
-        alert("Wallet Connected ✅");
-
-      } catch (err) {
-
-        console.error(err);
-
-        alert(
-          "Wallet connection cancelled or failed"
-        );
-
-      } finally {
-
-        connectingWallet = false;
+        await provider.send(
+          "wallet_switchEthereumChain",
+          [{ chainId: "0x2105" }]
+        )
       }
+
+      alert("Wallet Connected ✅")
+
+    } catch(err) {
+
+      console.error(err)
+
+      alert(
+        "Wallet connection failed"
+      )
     }
+  }
+
+</script>
 
     // 🚨 Blocked words
     const blockedWords = [
