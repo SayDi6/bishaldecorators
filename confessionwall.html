@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html>
 <head>
@@ -150,10 +151,10 @@
 
   <div id="confessionList"></div>
 
-  <!-- ✅ Ethers -->
+  <!-- ✅ ETHERS -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
-  <!-- ✅ Modern Wallet Popup -->
+  <!-- ✅ MODERN WALLET POPUP -->
   <script type="module">
 
     import {
@@ -238,16 +239,10 @@
           window.signer =
             window.provider.getSigner()
 
-          window.contract =
-            new ethers.Contract(
-              window.contractAddress,
-              window.abi,
-              window.signer
-            )
-
           const network =
             await window.provider.getNetwork()
 
+          // 🔄 Switch Base Network
           if (network.chainId !== 8453) {
 
             await window.provider.send(
@@ -255,6 +250,13 @@
               [{ chainId: '0x2105' }]
             )
           }
+
+          window.contract =
+            new ethers.Contract(
+              window.contractAddress,
+              window.abi,
+              window.signer
+            )
 
           alert('Wallet Connected ✅')
 
@@ -270,7 +272,7 @@
 
   </script>
 
-  <!-- ✅ Main Website Logic -->
+  <!-- ✅ MAIN WEBSITE LOGIC -->
   <script>
 
     window.contractAddress =
@@ -400,72 +402,6 @@
         return;
       }
 
-      const englishOnly =
-        /^[a-zA-Z0-9\s.,!?'"()-]+$/;
-
-      if (!englishOnly.test(msg)) {
-
-        alert(
-          "Only standard English text is allowed currently"
-        );
-
-        return;
-      }
-
-      const cleanedMsg =
-        normalizeMessage(msg);
-
-      for (const word of blockedWords) {
-
-        if (
-          cleanedMsg.includes(word)
-        ) {
-
-          alert(
-            "Restricted words detected"
-          );
-
-          return;
-        }
-      }
-
-      const now = Date.now();
-
-      const lastPostTime =
-        localStorage.getItem(
-          "lastPostTime"
-        );
-
-      if (
-        lastPostTime &&
-        now - lastPostTime < 60000
-      ) {
-
-        alert(
-          "Please wait 1 minute before posting again"
-        );
-
-        return;
-      }
-
-      let recentPosts =
-        JSON.parse(
-          localStorage.getItem(
-            "recentPosts"
-          )
-        ) || [];
-
-      if (
-        recentPosts.includes(cleanedMsg)
-      ) {
-
-        alert(
-          "Duplicate messages are not allowed"
-        );
-
-        return;
-      }
-
       try {
 
         const tx =
@@ -481,33 +417,12 @@
 
         await tx.wait();
 
-        localStorage.setItem(
-          "lastPostTime",
-          now
-        );
-
-        recentPosts.push(cleanedMsg);
-
-        if (
-          recentPosts.length > 5
-        ) {
-          recentPosts.shift();
-        }
-
-        localStorage.setItem(
-          "recentPosts",
-          JSON.stringify(recentPosts)
-        );
-
         document.getElementById(
           "message"
         ).value = "";
 
         charCounter.innerText =
           "0 / 125";
-
-        charCounter.style.color =
-          "#64748b";
 
         await loadConfessions();
 
@@ -575,211 +490,36 @@
 
         list.innerHTML = "";
 
-        const promises = [];
+        for (let i = 0; i < total; i++) {
 
-        const randomIndexes =
-          new Set();
-
-        const batchSize =
-          Math.min(50, total);
-
-        while (
-          randomIndexes.size < batchSize
-        ) {
-
-          const randomIndex =
-            Math.floor(
-              Math.random() * total
-            );
-
-          randomIndexes.add(
-            randomIndex
-          );
-        }
-
-        for (const i of randomIndexes) {
-
-          promises.push(
-            readContract.confessions(i)
-          );
-        }
-
-        const results =
-          await Promise.all(promises);
-
-        const placedBubbles = [];
-
-        results.forEach((c) => {
+          const c =
+            await readContract.confessions(i);
 
           const div =
             document.createElement("div");
 
-          const textLength =
-            c[0].length;
-
-          let size;
-
-          if (textLength < 40) {
-
-            size =
-              Math.floor(
-                Math.random() * 25
-              ) + 70;
-
-          } else if (textLength < 80) {
-
-            size =
-              Math.floor(
-                Math.random() * 30
-              ) + 95;
-
-          } else {
-
-            size =
-              Math.floor(
-                Math.random() * 35
-              ) + 120;
-          }
-
-          div.style.width =
-            size + "px";
-
-          div.style.height =
-            size + "px";
-
-          div.style.position =
-            "absolute";
-
-          const maxX =
-            window.innerWidth -
-            size -
-            60;
-
-          const maxY =
-            window.innerHeight -
-            size -
-            260;
-
-          let x, y;
-          let overlapping;
-
-          do {
-
-            overlapping = false;
-
-            x =
-              Math.random() * maxX;
-
-            y =
-              Math.random() *
-              (maxY - 120) + 120;
-
-            for (
-              const bubble of placedBubbles
-            ) {
-
-              const dx =
-                bubble.x - x;
-
-              const dy =
-                bubble.y - y;
-
-              const distance =
-                Math.sqrt(
-                  dx * dx + dy * dy
-                );
-
-              if (
-                distance <
-                (
-                  bubble.size / 2 +
-                  size / 2 +
-                  25
-                )
-              ) {
-
-                overlapping = true;
-                break;
-              }
-            }
-
-          } while (overlapping);
-
-          placedBubbles.push({
-            x,
-            y,
-            size
-          });
-
+          div.style.width = "120px";
+          div.style.height = "120px";
+          div.style.position = "absolute";
           div.style.left =
-            x + "px";
-
+            Math.random() * 80 + "%";
           div.style.top =
-            y + "px";
-
-          div.style.borderRadius =
-            "50%";
-
-          div.style.display =
-            "flex";
-
-          div.style.alignItems =
-            "center";
-
-          div.style.justifyContent =
-            "center";
-
-          div.style.textAlign =
-            "center";
-
-          div.style.cursor =
-            "pointer";
-
-          div.style.padding =
-            "12px";
-
-          div.style.background = `
-            radial-gradient(
-              circle at 30% 30%,
-              rgba(255,255,255,0.55),
-              rgba(191,219,254,0.22),
-              rgba(147,197,253,0.08),
-              rgba(255,255,255,0.03)
-            )
-          `;
-
+            Math.random() * 70 + "%";
+          div.style.borderRadius = "50%";
+          div.style.background =
+            "rgba(255,255,255,0.3)";
           div.style.backdropFilter =
-            "blur(14px)";
-
-          div.style.border =
-            "1.5px solid rgba(255,255,255,0.35)";
-
-          div.style.boxShadow = `
-            0 0 20px rgba(59,130,246,0.18),
-            0 0 35px rgba(168,85,247,0.12),
-            0 0 50px rgba(236,72,153,0.08)
-          `;
-
-          div.style.transition =
-            "0.3s";
-
-          div.style.overflow =
-            "hidden";
-
+            "blur(10px)";
+          div.style.display = "flex";
+          div.style.alignItems = "center";
+          div.style.justifyContent = "center";
+          div.style.textAlign = "center";
+          div.style.padding = "10px";
+          div.style.cursor = "pointer";
           div.style.animation =
-            `floatBubble ${Math.random() * 4 + 4}s ease-in-out infinite`;
+            "floatBubble 6s ease-in-out infinite";
 
           div.innerHTML = "";
-
-          div.onmouseenter = () => {
-            div.style.transform =
-              "scale(1.08)";
-          };
-
-          div.onmouseleave = () => {
-            div.style.transform =
-              "scale(1)";
-          };
 
           let revealed = false;
 
@@ -789,41 +529,22 @@
 
             if (revealed) {
 
-              div.style.animation =
-                "burstBubble 0.35s ease";
-
-              setTimeout(() => {
-
-                div.style.animation =
-                  `floatBubble ${Math.random() * 4 + 4}s ease-in-out infinite`;
-
-                div.innerHTML = `
-                  <div style="
-                    padding:10px;
-                    color:#111827;
-                    animation:fadeIn 0.5s ease;
+              div.innerHTML = `
+                <div>
+                  <p style="
+                    font-size:12px;
+                    margin:0;
                   ">
-                    <p style="
-                      font-size:12px;
-                      margin:0;
-                      word-break:break-word;
-                      line-height:1.3;
-                    ">
-                      ${c[0]}
-                    </p>
+                    ${c[0]}
+                  </p>
 
-                    <br>
+                  <br>
 
-                    <small style="
-                      opacity:0.7;
-                      font-size:10px;
-                    ">
-                      ${formatTime(c[1])}
-                    </small>
-                  </div>
-                `;
-
-              }, 250);
+                  <small>
+                    ${formatTime(c[1])}
+                  </small>
+                </div>
+              `;
 
             } else {
 
@@ -832,18 +553,19 @@
           };
 
           list.appendChild(div);
-        });
+        }
 
-      } catch (err) {
+      } catch(err) {
 
-        console.error(err);
+        console.error(err)
       }
     }
 
-    window.onload = async () => {
+    window.onload =
+      async () => {
 
-      await loadConfessions();
-    };
+        await loadConfessions()
+      }
 
   </script>
 
