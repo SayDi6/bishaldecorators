@@ -28,6 +28,7 @@
       overflow: hidden;
     }
 
+    /* 🫧 Floating movement */
     @keyframes floatBubble {
 
       0% {
@@ -66,6 +67,7 @@
       }
     }
 
+    /* 💥 Burst */
     @keyframes burstBubble {
 
       0% {
@@ -105,20 +107,45 @@
 
   <h2>🕵️ Anonymous Confession Wall</h2>
 
-  <button
-    onclick="connectWallet()"
-    style="
-      padding:10px 14px;
-      border:none;
-      border-radius:10px;
-      cursor:pointer;
-      background:#111827;
-      color:white;
-      font-weight:bold;
-    "
-  >
-    Connect Wallet
-  </button>
+  <div style="
+  display:flex;
+  gap:8px;
+  align-items:center;
+  margin-bottom:10px;
+">
+
+    <button
+      onclick="connectWallet()"
+      style="
+        padding:10px 14px;
+        border:none;
+        border-radius:10px;
+        cursor:pointer;
+        background:#111827;
+        color:white;
+        font-weight:bold;
+      "
+    >
+      Connect Wallet
+    </button>
+
+    <button
+      onclick="connectBaseWallet()"
+      style="
+        padding:10px 14px;
+        border:none;
+        border-radius:10px;
+        cursor:pointer;
+        background:#111827;
+        border:1px solid #0052ff;
+        color:white;
+        font-weight:bold;
+      "
+    >
+      Base Wallet
+    </button>
+
+  </div>
 
   <br><br>
 
@@ -150,133 +177,36 @@
 
   <div id="confessionList"></div>
 
-  <!-- ✅ ETHERS -->
+  <!-- ✅ Ethers -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
   <!-- ✅ Web3Modal -->
-<script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
+  <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
 
-<!-- ✅ WalletConnect -->
-<script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider/dist/umd/index.min.js"></script>
+  <!-- ✅ WalletConnect -->
+  <script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
 
-<!-- ✅ Coinbase Wallet -->
-<script src="https://cdn.jsdelivr.net/npm/@coinbase/wallet-sdk/dist/CoinbaseWalletSDK.umd.min.js"></script>
+  <!-- ✅ Coinbase/Base Wallet -->
+  <script src="https://unpkg.com/@coinbase/wallet-sdk@3.9.3/dist/CoinbaseWalletSDK.min.js"></script>
 
-<script>
-
-  let provider
-  let signer
-  let contract
-
-  async function connectWallet() {
-
-    try {
-
-      const providerOptions = {
-
-        walletconnect: {
-
-          package:
-            window.WalletConnectProvider.default,
-
-          options: {
-
-            rpc: {
-              8453:
-                "https://mainnet.base.org"
-            },
-
-            chainId: 8453
-          }
-        },
-
-        coinbasewallet: {
-
-          package:
-            window.CoinbaseWalletSDK,
-
-          options: {
-
-            appName:
-              "Anonymous Confession Wall",
-
-            rpc:
-              "https://mainnet.base.org",
-
-            chainId: 8453,
-
-            darkMode: true
-          }
-        }
-      }
-
-      const web3Modal =
-        new window.Web3Modal.default({
-
-          cacheProvider: false,
-
-          providerOptions,
-
-          theme: "dark"
-        })
-
-      const connection =
-        await web3Modal.connect()
-
-      provider =
-        new ethers.providers.Web3Provider(
-          connection
-        )
-
-      signer =
-        provider.getSigner()
-
-      const network =
-        await provider.getNetwork()
-
-      if (network.chainId !== 8453) {
-
-        await provider.send(
-          "wallet_switchEthereumChain",
-          [{ chainId: "0x2105" }]
-        )
-      }
-
-      contract =
-        new ethers.Contract(
-          window.contractAddress,
-          window.abi,
-          signer
-        )
-
-      window.contract = contract
-
-      alert("Wallet Connected ✅")
-
-    } catch(err) {
-
-      console.error(err)
-
-      alert(
-        "Wallet connection failed"
-      )
-    }
-  }
-
-</script>
-
-  <!-- ✅ MAIN WEBSITE LOGIC -->
   <script>
 
-    window.contractAddress =
+    const contractAddress =
       "0x4f1ab8fcc85aaa20ffe3105add56b2d2185aa3db";
 
-    window.abi = [
+    const abi = [
       "function postConfession(string memory _message) payable",
       "function getTotalConfessions() view returns (uint256)",
       "function confessions(uint256) view returns (string memory, uint256, uint256)"
     ];
 
+    let provider;
+    let signer;
+    let contract;
+
+    let connectingWallet = false;
+
+    // 🌐 Public provider
     const readProvider =
       new ethers.providers.JsonRpcProvider(
         "https://mainnet.base.org"
@@ -289,6 +219,159 @@
         readProvider
       );
 
+    // 🔹 Connect Wallet
+    async function connectWallet() {
+
+      if (connectingWallet) return;
+
+      connectingWallet = true;
+
+      try {
+
+        const providerOptions = {
+
+          walletconnect: {
+
+            package:
+              window.WalletConnectProvider.default,
+
+            options: {
+
+              rpc: {
+                8453:
+                  "https://mainnet.base.org"
+              },
+
+              chainId: 8453
+            }
+          },
+
+          coinbasewalletsdk: {
+
+            package:
+              window.CoinbaseWalletSDK,
+
+            options: {
+
+              appName:
+                "Anonymous Confession Wall",
+
+              rpc:
+                "https://mainnet.base.org",
+
+              chainId: 8453,
+
+              darkMode: true
+            }
+          }
+        };
+
+        const web3Modal =
+          new window.Web3Modal.default({
+
+            cacheProvider: false,
+
+            providerOptions,
+
+            theme: "dark"
+          });
+
+        const connection =
+          await web3Modal.connect();
+
+        provider =
+          new ethers.providers.Web3Provider(
+            connection
+          );
+
+        signer =
+          provider.getSigner();
+
+        const network =
+          await provider.getNetwork();
+
+        // 🔄 Switch Base
+        if (network.chainId !== 8453) {
+
+          await provider.send(
+            "wallet_switchEthereumChain",
+            [{ chainId: "0x2105" }]
+          );
+        }
+
+        contract =
+          new ethers.Contract(
+            contractAddress,
+            abi,
+            signer
+          );
+
+        alert("Wallet Connected ✅");
+
+      } catch (err) {
+
+        console.error(err);
+
+        alert(
+          "Wallet connection cancelled or failed"
+        );
+
+      } finally {
+
+        connectingWallet = false;
+      }
+    }
+
+    // 🔵 Connect Base Wallet directly
+    async function connectBaseWallet() {
+
+      try {
+
+        const coinbaseWallet =
+          new window.CoinbaseWalletSDK({
+
+            appName:
+              "Anonymous Confession Wall",
+
+            darkMode: true
+          });
+
+        const ethereum =
+          coinbaseWallet.makeWeb3Provider(
+            "https://mainnet.base.org",
+            8453
+          );
+
+        await ethereum.enable();
+
+        provider =
+          new ethers.providers.Web3Provider(
+            ethereum
+          );
+
+        signer =
+          provider.getSigner();
+
+        contract =
+          new ethers.Contract(
+            contractAddress,
+            abi,
+            signer
+          );
+
+        alert("Base Wallet Connected ✅");
+
+      } catch (err) {
+
+        console.error(err);
+
+        alert(
+          "Base Wallet connection failed"
+        );
+      }
+    }
+
+    // 🚨 Blocked words
     const blockedWords = [
 
       "kill",
@@ -317,6 +400,7 @@
       "genocide"
     ];
 
+    // 🧼 Normalize
     function normalizeMessage(text) {
 
       return text
@@ -337,6 +421,7 @@
         .replace(/(.)\1+/g, "$1");
     }
 
+    // 🔢 Character counter
     const messageInput =
       document.getElementById("message");
 
@@ -345,6 +430,7 @@
 
     messageInput.addEventListener("input", () => {
 
+      // ✂️ stop at 125
       if (
         messageInput.value.length > 125
       ) {
@@ -359,26 +445,32 @@
       charCounter.innerText =
         `${length} / 125`;
 
+      // ⚪ normal
       if (length < 100) {
 
         charCounter.style.color =
           "#64748b";
+      }
 
-      } else if (length < 125) {
+      // 🟡 warning
+      else if (length < 125) {
 
         charCounter.style.color =
           "#eab308";
+      }
 
-      } else {
+      // 🔴 limit
+      else {
 
         charCounter.style.color =
           "#ef4444";
       }
     });
 
+    // 🔹 Post confession
     async function postConfession() {
 
-      if (!window.contract) {
+      if (!contract) {
 
         alert("Connect wallet first");
         return;
@@ -395,10 +487,81 @@
         return;
       }
 
+      // 🌍 English only
+      const englishOnly =
+        /^[a-zA-Z0-9\s.,!?'"()-]+$/;
+
+      if (!englishOnly.test(msg)) {
+
+        alert(
+          "Only standard English text is allowed currently"
+        );
+
+        return;
+      }
+
+      // 🧼 Clean
+      const cleanedMsg =
+        normalizeMessage(msg);
+
+      // 🚨 Block words
+      for (const word of blockedWords) {
+
+        if (
+          cleanedMsg.includes(word)
+        ) {
+
+          alert(
+            "Restricted words detected"
+          );
+
+          return;
+        }
+      }
+
+      // ⏳ Cooldown
+      const now = Date.now();
+
+      const lastPostTime =
+        localStorage.getItem(
+          "lastPostTime"
+        );
+
+      if (
+        lastPostTime &&
+        now - lastPostTime < 60000
+      ) {
+
+        alert(
+          "Please wait 1 minute before posting again"
+        );
+
+        return;
+      }
+
+      // 🚫 Duplicate prevention
+      let recentPosts =
+        JSON.parse(
+          localStorage.getItem(
+            "recentPosts"
+          )
+        ) || [];
+
+      if (
+        recentPosts.includes(cleanedMsg)
+      ) {
+
+        alert(
+          "Duplicate messages are not allowed"
+        );
+
+        return;
+      }
+
       try {
 
         const tx =
-          await window.contract.postConfession(
+          await contract.postConfession(
             msg,
             {
               value:
@@ -410,12 +573,35 @@
 
         await tx.wait();
 
+        // 💾 Save cooldown
+        localStorage.setItem(
+          "lastPostTime",
+          now
+        );
+
+        // 💾 Save recent
+        recentPosts.push(cleanedMsg);
+
+        if (
+          recentPosts.length > 5
+        ) {
+          recentPosts.shift();
+        }
+
+        localStorage.setItem(
+          "recentPosts",
+          JSON.stringify(recentPosts)
+        );
+
         document.getElementById(
           "message"
         ).value = "";
 
         charCounter.innerText =
           "0 / 125";
+
+        charCounter.style.color =
+          "#64748b";
 
         await loadConfessions();
 
@@ -427,6 +613,7 @@
       }
     }
 
+    // ⏱ Format time
     function formatTime(ts) {
 
       const now =
@@ -469,6 +656,7 @@
           : " days ago");
     }
 
+    // 🫧 Load confessions
     async function loadConfessions() {
 
       try {
@@ -483,82 +671,323 @@
 
         list.innerHTML = "";
 
-        for (let i = 0; i < total; i++) {
+        const promises = [];
 
-          const c =
-            await readContract.confessions(i);
+        const randomIndexes =
+          new Set();
+
+        const batchSize =
+          Math.min(50, total);
+
+        while (
+          randomIndexes.size < batchSize
+        ) {
+
+          const randomIndex =
+            Math.floor(
+              Math.random() * total
+            );
+
+          randomIndexes.add(
+            randomIndex
+          );
+        }
+
+        for (const i of randomIndexes) {
+
+          promises.push(
+            readContract.confessions(i)
+          );
+        }
+
+        const results =
+          await Promise.all(promises);
+
+        const placedBubbles = [];
+
+        results.forEach((c) => {
 
           const div =
             document.createElement("div");
 
-          div.style.width = "120px";
-          div.style.height = "120px";
-          div.style.position = "absolute";
+          // 🫧 Dynamic size
+          const textLength =
+            c[0].length;
+
+          let size;
+
+          if (textLength < 40) {
+
+            size =
+              Math.floor(
+                Math.random() * 25
+              ) + 70;
+
+          } else if (textLength < 80) {
+
+            size =
+              Math.floor(
+                Math.random() * 30
+              ) + 95;
+
+          } else {
+
+            size =
+              Math.floor(
+                Math.random() * 35
+              ) + 120;
+          }
+
+          div.style.width =
+            size + "px";
+
+          div.style.height =
+            size + "px";
+
+          div.style.position =
+            "absolute";
+
+          const maxX =
+            window.innerWidth -
+            size -
+            60;
+
+          const maxY =
+            window.innerHeight -
+            size -
+            260;
+
+          let x, y;
+          let overlapping;
+
+          do {
+
+            overlapping = false;
+
+            x =
+              Math.random() * maxX;
+
+            y =
+              Math.random() *
+              (maxY - 120) + 120;
+
+            for (
+              const bubble of placedBubbles
+            ) {
+
+              const dx =
+                bubble.x - x;
+
+              const dy =
+                bubble.y - y;
+
+              const distance =
+                Math.sqrt(
+                  dx * dx + dy * dy
+                );
+
+              if (
+                distance <
+                (
+                  bubble.size / 2 +
+                  size / 2 +
+                  25
+                )
+              ) {
+
+                overlapping = true;
+                break;
+              }
+            }
+
+          } while (overlapping);
+
+          placedBubbles.push({
+            x,
+            y,
+            size
+          });
+
           div.style.left =
-            Math.random() * 80 + "%";
+            x + "px";
+
           div.style.top =
-            Math.random() * 70 + "%";
-          div.style.borderRadius = "50%";
-          div.style.background =
-            "rgba(255,255,255,0.3)";
+            y + "px";
+
+          // 🫧 Bubble style
+          div.style.borderRadius =
+            "50%";
+
+          div.style.display =
+            "flex";
+
+          div.style.alignItems =
+            "center";
+
+          div.style.justifyContent =
+            "center";
+
+          div.style.textAlign =
+            "center";
+
+          div.style.cursor =
+            "pointer";
+
+          div.style.padding =
+            "12px";
+
+          div.style.background = `
+            radial-gradient(
+              circle at 30% 30%,
+              rgba(255,255,255,0.55),
+              rgba(191,219,254,0.22),
+              rgba(147,197,253,0.08),
+              rgba(255,255,255,0.03)
+            )
+          `;
+
           div.style.backdropFilter =
-            "blur(10px)";
-          div.style.display = "flex";
-          div.style.alignItems = "center";
-          div.style.justifyContent = "center";
-          div.style.textAlign = "center";
-          div.style.padding = "10px";
-          div.style.cursor = "pointer";
+            "blur(14px)";
+
+          div.style.border =
+            "1.5px solid rgba(255,255,255,0.35)";
+
+          div.style.boxShadow = `
+            0 0 20px rgba(59,130,246,0.18),
+            0 0 35px rgba(168,85,247,0.12),
+            0 0 50px rgba(236,72,153,0.08)
+          `;
+
+          div.style.transition =
+            "0.3s";
+
+          div.style.overflow =
+            "hidden";
+
+          // ✨ Float
           div.style.animation =
-            "floatBubble 6s ease-in-out infinite";
+            `floatBubble ${Math.random() * 4 + 4}s ease-in-out infinite`;
 
           div.innerHTML = "";
 
+          // ✨ Hover
+          div.onmouseenter = () => {
+            div.style.transform =
+              "scale(1.08)";
+          };
+
+          div.onmouseleave = () => {
+            div.style.transform =
+              "scale(1)";
+          };
+
+          // 🔓 Reveal
           let revealed = false;
 
           div.onclick = () => {
 
             revealed = !revealed;
 
+            // 🔓 Open
             if (revealed) {
 
-              div.innerHTML = `
-                <div>
-                  <p style="
-                    font-size:12px;
-                    margin:0;
+              div.style.animation =
+                "burstBubble 0.35s ease";
+
+              setTimeout(() => {
+
+                div.style.animation =
+                  `floatBubble ${Math.random() * 4 + 4}s ease-in-out infinite`;
+
+                div.innerHTML = `
+                  <div style="
+                    padding:10px;
+                    color:#111827;
+                    animation:fadeIn 0.5s ease;
                   ">
-                    ${c[0]}
-                  </p>
+                    <p style="
+                      font-size:12px;
+                      margin:0;
+                      word-break:break-word;
+                      line-height:1.3;
+                    ">
+                      ${c[0]}
+                    </p>
 
-                  <br>
+                    <br>
 
-                  <small>
-                    ${formatTime(c[1])}
-                  </small>
-                </div>
-              `;
+                    <small style="
+                      opacity:0.7;
+                      font-size:10px;
+                    ">
+                      ${formatTime(c[1])}
+                    </small>
+                  </div>
+                `;
 
-            } else {
+              }, 250);
 
-              div.innerHTML = "";
+              // ⏳ Fade
+              setTimeout(() => {
+
+                if (revealed) {
+
+                  div.style.transition =
+                    "opacity 6s ease";
+
+                  div.style.opacity =
+                    "0";
+
+                  setTimeout(() => {
+
+                    revealed = false;
+
+                    div.style.opacity =
+                      "1";
+
+                    div.style.transition =
+                      "0.3s";
+
+                    div.innerHTML = "";
+
+                  }, 6000);
+                }
+
+              }, 35000);
+
+            }
+
+            // 🔒 Close
+            else {
+
+              div.style.animation =
+                "burstBubble 0.35s ease";
+
+              setTimeout(() => {
+
+                div.style.animation =
+                  `floatBubble ${Math.random() * 4 + 4}s ease-in-out infinite`;
+
+                div.innerHTML = "";
+
+              }, 250);
             }
           };
 
           list.appendChild(div);
-        }
+        });
 
-      } catch(err) {
+      } catch (err) {
 
-        console.error(err)
+        console.error(err);
       }
     }
 
-    window.onload =
-      async () => {
+    // 🚀 Start
+    window.onload = async () => {
 
-        await loadConfessions()
-      }
+      await loadConfessions();
+    };
 
   </script>
 
