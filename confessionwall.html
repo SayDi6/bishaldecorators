@@ -28,7 +28,6 @@
       overflow: hidden;
     }
 
-    /* 🫧 Floating animation */
     @keyframes floatBubble {
 
       0% {
@@ -67,7 +66,6 @@
       }
     }
 
-    /* 💥 Burst */
     @keyframes burstBubble {
 
       0% {
@@ -155,26 +153,135 @@
   <!-- ✅ Ethers -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <!-- ✅ Modern Wallet Popup -->
+  <script type="module">
 
+    import {
+      EthereumClient,
+      w3mConnectors,
+      w3mProvider
+    } from 'https://unpkg.com/@web3modal/ethereum@2.7.1/dist/index.js'
+
+    import {
+      Web3Modal
+    } from 'https://unpkg.com/@web3modal/html@2.7.1/dist/index.js'
+
+    import {
+      configureChains,
+      createConfig
+    } from 'https://esm.sh/wagmi'
+
+    import {
+      mainnet,
+      base
+    } from 'https://esm.sh/wagmi/chains'
+
+    const projectId =
+      '24a3a3aaa955599c699d8dcd73aa065a'
+
+    const chains = [
+      mainnet,
+      base
+    ]
+
+    const { publicClient } =
+      configureChains(chains, [
+        w3mProvider({ projectId })
+      ])
+
+    const wagmiConfig =
+      createConfig({
+
+        autoConnect: true,
+
+        connectors:
+          w3mConnectors({
+            projectId,
+            chains
+          }),
+
+        publicClient
+      })
+
+    const ethereumClient =
+      new EthereumClient(
+        wagmiConfig,
+        chains
+      )
+
+    const modal =
+      new Web3Modal(
+        {
+          projectId,
+          themeMode: 'dark'
+        },
+        ethereumClient
+      )
+
+    window.connectWallet =
+      async () => {
+
+        try {
+
+          await modal.openModal()
+
+          const walletProvider =
+            await modal.getWalletProvider()
+
+          if (!walletProvider) return
+
+          window.provider =
+            new ethers.providers.Web3Provider(
+              walletProvider
+            )
+
+          window.signer =
+            window.provider.getSigner()
+
+          window.contract =
+            new ethers.Contract(
+              window.contractAddress,
+              window.abi,
+              window.signer
+            )
+
+          const network =
+            await window.provider.getNetwork()
+
+          if (network.chainId !== 8453) {
+
+            await window.provider.send(
+              'wallet_switchEthereumChain',
+              [{ chainId: '0x2105' }]
+            )
+          }
+
+          alert('Wallet Connected ✅')
+
+        } catch(err) {
+
+          console.error(err)
+
+          alert(
+            'Wallet connection failed'
+          )
+        }
+      }
+
+  </script>
+
+  <!-- ✅ Main Website Logic -->
   <script>
 
-    const contractAddress =
+    window.contractAddress =
       "0x4f1ab8fcc85aaa20ffe3105add56b2d2185aa3db";
 
-    const abi = [
+    window.abi = [
       "function postConfession(string memory _message) payable",
       "function getTotalConfessions() view returns (uint256)",
       "function confessions(uint256) view returns (string memory, uint256, uint256)"
     ];
 
-    let provider;
-    let signer;
-    let contract;
-
-    let connectingWallet = false;
-
-    // 🌐 Public provider
     const readProvider =
       new ethers.providers.JsonRpcProvider(
         "https://mainnet.base.org"
@@ -187,133 +294,6 @@
         readProvider
       );
 
-    // 🔹 Connect Wallet
-    async function connectWallet() {
-
-      if (connectingWallet) return;
-
-      connectingWallet = true;
-
-      try {
-
-        <script type="module">
-
-import {
-  EthereumClient,
-  w3mConnectors,
-  w3mProvider
-} from 'https://unpkg.com/@web3modal/ethereum@2.7.1/dist/index.js'
-
-import {
-  Web3Modal
-} from 'https://unpkg.com/@web3modal/html@2.7.1/dist/index.js'
-
-import {
-  configureChains,
-  createConfig
-} from 'https://esm.sh/wagmi'
-
-import {
-  mainnet,
-  base
-} from 'https://esm.sh/wagmi/chains'
-
-const projectId =
-  '24a3a3aaa955599c699d8dcd73aa065a'
-
-const chains = [
-  mainnet,
-  base
-]
-
-const { publicClient } =
-  configureChains(chains, [
-    w3mProvider({ projectId })
-  ])
-
-const wagmiConfig =
-  createConfig({
-
-    autoConnect: true,
-
-    connectors:
-      w3mConnectors({
-        projectId,
-        chains
-      }),
-
-    publicClient
-  })
-
-const ethereumClient =
-  new EthereumClient(
-    wagmiConfig,
-    chains
-  )
-
-const modal =
-  new Web3Modal(
-    {
-      projectId,
-      themeMode: 'dark'
-    },
-    ethereumClient
-  )
-
-window.connectWallet =
-  async () => {
-
-    try {
-
-      await modal.openModal()
-
-      const provider =
-        await modal.getWalletProvider()
-
-      if (!provider) return
-
-      window.provider =
-        new ethers.providers.Web3Provider(
-          provider
-        )
-
-      window.signer =
-        provider.getSigner()
-
-      window.contract =
-        new ethers.Contract(
-          contractAddress,
-          abi,
-          signer
-        )
-
-      const network =
-        await provider.getNetwork()
-
-      // 🔄 Switch Base
-      if (network.chainId !== 8453) {
-
-        await provider.send(
-          "wallet_switchEthereumChain",
-          [{ chainId: "0x2105" }]
-        )
-      }
-
-      alert("Wallet Connected ✅")
-
-    } catch(err) {
-
-      console.error(err)
-
-      alert(
-        "Wallet connection failed"
-      )
-    }
-  }
-
-</script>
-
-    // 🚨 Blocked words
     const blockedWords = [
 
       "kill",
@@ -342,7 +322,6 @@ window.connectWallet =
       "genocide"
     ];
 
-    // 🧼 Normalize
     function normalizeMessage(text) {
 
       return text
@@ -363,7 +342,6 @@ window.connectWallet =
         .replace(/(.)\1+/g, "$1");
     }
 
-    // 🔢 Character counter
     const messageInput =
       document.getElementById("message");
 
@@ -372,7 +350,6 @@ window.connectWallet =
 
     messageInput.addEventListener("input", () => {
 
-      // ✂️ stop at 125
       if (
         messageInput.value.length > 125
       ) {
@@ -404,10 +381,9 @@ window.connectWallet =
       }
     });
 
-    // 🔹 Post confession
     async function postConfession() {
 
-      if (!contract) {
+      if (!window.contract) {
 
         alert("Connect wallet first");
         return;
@@ -424,7 +400,6 @@ window.connectWallet =
         return;
       }
 
-      // 🌍 English only
       const englishOnly =
         /^[a-zA-Z0-9\s.,!?'"()-]+$/;
 
@@ -437,11 +412,9 @@ window.connectWallet =
         return;
       }
 
-      // 🧼 Clean
       const cleanedMsg =
         normalizeMessage(msg);
 
-      // 🚨 Block words
       for (const word of blockedWords) {
 
         if (
@@ -456,7 +429,6 @@ window.connectWallet =
         }
       }
 
-      // ⏳ Cooldown
       const now = Date.now();
 
       const lastPostTime =
@@ -476,7 +448,6 @@ window.connectWallet =
         return;
       }
 
-      // 🚫 Duplicate prevention
       let recentPosts =
         JSON.parse(
           localStorage.getItem(
@@ -498,7 +469,7 @@ window.connectWallet =
       try {
 
         const tx =
-          await contract.postConfession(
+          await window.contract.postConfession(
             msg,
             {
               value:
@@ -548,7 +519,6 @@ window.connectWallet =
       }
     }
 
-    // ⏱ Format time
     function formatTime(ts) {
 
       const now =
@@ -591,7 +561,6 @@ window.connectWallet =
           : " days ago");
     }
 
-    // 🫧 Load confessions
     async function loadConfessions() {
 
       try {
@@ -645,7 +614,6 @@ window.connectWallet =
           const div =
             document.createElement("div");
 
-          // 🫧 Dynamic size
           const textLength =
             c[0].length;
 
@@ -749,7 +717,6 @@ window.connectWallet =
           div.style.top =
             y + "px";
 
-          // 🫧 Bubble style
           div.style.borderRadius =
             "50%";
 
@@ -799,13 +766,11 @@ window.connectWallet =
           div.style.overflow =
             "hidden";
 
-          // ✨ Float
           div.style.animation =
             `floatBubble ${Math.random() * 4 + 4}s ease-in-out infinite`;
 
           div.innerHTML = "";
 
-          // ✨ Hover
           div.onmouseenter = () => {
             div.style.transform =
               "scale(1.08)";
@@ -816,14 +781,12 @@ window.connectWallet =
               "scale(1)";
           };
 
-          // 🔓 Reveal
           let revealed = false;
 
           div.onclick = () => {
 
             revealed = !revealed;
 
-            // 🔓 Open
             if (revealed) {
 
               div.style.animation =
@@ -862,47 +825,9 @@ window.connectWallet =
 
               }, 250);
 
-              // ⏳ Fade
-              setTimeout(() => {
-
-                if (revealed) {
-
-                  div.style.transition =
-                    "opacity 6s ease";
-
-                  div.style.opacity =
-                    "0";
-
-                  setTimeout(() => {
-
-                    revealed = false;
-
-                    div.style.opacity =
-                      "1";
-
-                    div.style.transition =
-                      "0.3s";
-
-                    div.innerHTML = "";
-
-                  }, 6000);
-                }
-
-              }, 35000);
-
             } else {
 
-              div.style.animation =
-                "burstBubble 0.35s ease";
-
-              setTimeout(() => {
-
-                div.style.animation =
-                  `floatBubble ${Math.random() * 4 + 4}s ease-in-out infinite`;
-
-                div.innerHTML = "";
-
-              }, 250);
+              div.innerHTML = "";
             }
           };
 
@@ -915,7 +840,6 @@ window.connectWallet =
       }
     }
 
-    // 🚀 Start
     window.onload = async () => {
 
       await loadConfessions();
