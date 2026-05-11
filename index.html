@@ -1,504 +1,429 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Anonymous Confession Wall</title>
+<title>Bishal Decorators</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+<style>
 
-  <style>
+html {
+ scroll-behavior: smooth;
+}
 
-    body {
-      margin: 0;
-      overflow: hidden;
-      font-family: Arial, sans-serif;
-      background: #f5f7fb;
-      color: #111827;
-      padding: 30px;
-    }
+body {
+ margin: 0;
+ font-family: Arial, sans-serif;
+ background: #f8f5f2;
+ animation: fadeIn 0.8s ease-out;
+}
 
-    h2, h3,
-    input, button,
-    small {
-      position: relative;
-      z-index: 10;
-    }
+@keyframes fadeIn {
+ from { opacity: 0; transform: translateY(10px); }
+ to { opacity: 1; transform: translateY(0); }
+}
 
-    #confessionList {
-      position: relative;
-      width: 100%;
-      height: calc(100vh - 220px);
-      overflow: hidden;
-    }
+/* HEADER */
+header {
+ background: linear-gradient(-45deg, #6b4226, #8b5e3c, #6b4226, #a47148);
+ background-size: 300% 300%;
+ animation: gradientMove 8s ease infinite, slideDown 0.8s ease;
+ color: white;
+ text-align: center;
+ padding: 60px 20px;
+ position: sticky;
+ top: 0;
+ z-index: 1000;
+}
 
-    @keyframes floatBubble {
+header h1 {
+ font-size: 32px;
+ margin: 0;
+ letter-spacing: 3px;
+ text-transform: uppercase;
 
-      0% {
-        transform:
-          translateY(0px)
-          translateX(0px)
-          scale(1);
-      }
+ background: linear-gradient(90deg, #fff, #ffd9b3, #fff);
+ -webkit-background-clip: text;
+ -webkit-text-fill-color: transparent;
 
-      25% {
-        transform:
-          translateY(-10px)
-          translateX(4px)
-          scale(1.02);
-      }
+ animation: shineText 4s linear infinite;
+}
 
-      50% {
-        transform:
-          translateY(-18px)
-          translateX(-4px)
-          scale(0.98);
-      }
+header p {
+ margin-top: 10px;
+ font-size: 14px;
+ opacity: 0.9;
+}
 
-      75% {
-        transform:
-          translateY(-8px)
-          translateX(3px)
-          scale(1.01);
-      }
+/* animations */
+@keyframes gradientMove {
+ 0% { background-position: 0% 50%; }
+ 50% { background-position: 100% 50%; }
+ 100% { background-position: 0% 50%; }
+}
 
-      100% {
-        transform:
-          translateY(0px)
-          translateX(0px)
-          scale(1);
-      }
-    }
+@keyframes shineText {
+ 0% { background-position: -200px; }
+ 100% { background-position: 200px; }
+}
 
-    @keyframes burstBubble {
+/* BUTTON */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
 
-      0% {
-        transform: scale(1);
-        opacity: 1;
-        filter: blur(0px);
-      }
+    background: white;
+    color: #6b4226;
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    margin: 6px;
+    transition: 0.3s;
+}
 
-      70% {
-        transform: scale(1.25);
-        opacity: 0.7;
-        filter: blur(1px);
-      }
+.btn:hover {
+ transform: scale(1.05);
+}
 
-      100% {
-        transform: scale(1.6);
-        opacity: 0;
-        filter: blur(4px);
-      }
-    }
+/* SECTION */
+section {
+ max-width: 900px;
+ margin: 25px auto;
+ background: white;
+ padding: 20px;
+ border-radius: 12px;
+ text-align: center;
+ box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+}
+    .section-header {
+    display: inline-block;
+    padding: 8px 18px;
+    border-radius: 25px;
+    background: #f1e6dc;
+    color: #6b4226;
+    font-size: 14px;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
 
-    @keyframes fadeIn {
+.section-header h2 {
+    margin: 0;
+    font-size: 16px;
+}
+    .reach-us {
+    max-width: 900px;
+    margin: 25px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+}
 
-      from {
-        opacity: 0;
-      }
+/* 🔥 GALLERY FIX (MAIN PART) */
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
 
-      to {
-        opacity: 1;
-      }
-    }
+    border: 2px solid #e0d6cc;
+    padding: 8px;
+    border-radius: 12px;
+    background: #fff;
+}
 
-  </style>
+.gallery img,
+.gallery video {
+ width: 100%;
+ aspect-ratio: 1 / 1;
+ object-fit: cover;
+ border-radius: 6px;
+ transition: 0.3s;
+}
+
+.gallery img:hover,
+.gallery video:hover {
+ transform: scale(1.05);
+}
+
+/* SERVICES */
+.service {
+ background: #f1f1f1;
+ padding: 12px;
+ margin: 10px 0;
+ border-radius: 8px;
+ transition: 0.3s;
+}
+
+.service:hover {
+ transform: scale(1.02);
+}
+
+/* CONTACT */
+.contact a {
+ display: block;
+ margin: 8px 0;
+ color: #6b4226;
+ text-decoration: none;
+ font-weight: bold;
+}
+
+/* LIGHTBOX */
+ .lightbox {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    background: rgba(0,0,0,0.95);
+
+    display: none;
+    justify-content: center;
+    align-items: center;
+
+    z-index: 9999;
+}
+
+.lightbox img {
+    max-width: 95%;
+    max-height: 95%;
+    object-fit: contain;
+}
+
+/* WHATSAPP FLOAT */
+.whatsapp-btn {
+ position: fixed;
+ bottom: 20px;
+ right: 20px;
+ background: #25D366;
+ color: white;
+ font-size: 22px;
+ padding: 14px;
+ border-radius: 50%;
+ text-decoration: none;
+ z-index: 1000;
+ transition: 0.3s;
+}
+
+.whatsapp-btn:hover {
+ transform: scale(1.1);
+}
+
+/* 📱 MOBILE FIX */
+@media (max-width: 600px) {
+
+ header {
+     padding: 40px 15px;
+ }
+
+ header h1 {
+     font-size: 22px;
+ }
+
+ header p {
+     font-size: 12px;
+ }
+
+ .btn {
+     display: block;
+     width: 85%;
+     margin: 8px auto;
+     font-size: 14px;
+ }
+
+ section {
+     margin: 10px;
+     padding: 15px;
+ }
+
+ /* 🔥 MOBILE GRID FIX */
+ .gallery {
+     grid-template-columns: repeat(3, 1fr);
+ }
+
+ .service {
+     font-size: 13px;
+ }
+}
+    .close-btn {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    font-size: 28px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+
+    background: rgba(0,0,0,0.5);
+    padding: 8px 14px;
+    border-radius: 50%;
+
+    z-index: 10000;
+}
+
+.close-btn:hover {
+    background: rgba(0,0,0,0.8);
+}
+
+</style>
 </head>
 
 <body>
 
-  <h2>🕵️ Anonymous Confession Wall</h2>
+<header>
+    <h1> Bishal Decorators</h1>
+<p>Making Your Events Beautiful</p>
 
-  <div style="
-    display:flex;
-    gap:8px;
-    align-items:center;
-    margin-bottom:10px;
-  ">
+    <a class="btn" href="tel:6294848759">📞 Call Now</a>
+    <a class="btn" href="https://wa.me/916294848759" target="_blank">
+    <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" width="18">
+    WhatsApp
+    </a>
+</header>
 
-    <button
-      onclick="connectWallet()"
-      style="
-        padding:10px 14px;
-        border:none;
-        border-radius:10px;
-        cursor:pointer;
-        background:#111827;
-        color:white;
-        font-weight:bold;
-      "
-    >
-      Connect Wallet
-    </button>
-
+<section>
+    <div class="section-header">
+    <h2>Our Work Album</h2>
   </div>
+    
+    <div class="gallery">
 
-  <br><br>
+<img src="shilapandel.jpeg" onclick="openLightbox(this)">
+<img src="shilapandel2.jpeg" onclick="openLightbox(this)">
+<img src="shilapandel3.jpeg" onclick="openLightbox(this)">
 
-  <input
-    id="message"
-    placeholder="Share an anonymous thought..."
-    style="padding:10px; width:260px;"
-  />
+<img src="shilap4.jpeg" onclick="openLightbox(this)">
+<img src="shilap5.jpeg" onclick="openLightbox(this)">
+<img src="shilap6.jpeg" onclick="openLightbox(this)">
+<img src="shilap7.jpeg" onclick="openLightbox(this)">
+<img src="shilap8.jpeg" onclick="openLightbox(this)">
+<img src="shilap9.jpeg" onclick="openLightbox(this)">
 
-  <button
-    onclick="postConfession()"
-    style="padding:10px;"
-  >
-    Post
-  </button>
+<img src="shilap10.jpeg" onclick="openLightbox(this)">
+<img src="shilap11.jpeg" onclick="openLightbox(this)">
+<img src="shilap12.jpeg" onclick="openLightbox(this)">
+<img src="shilap13.jpeg" onclick="openLightbox(this)">
+<img src="shilap15.jpeg" onclick="openLightbox(this)">
+<img src="shilap16.jpeg" onclick="openLightbox(this)">
+<img src="shilap17.jpeg" onclick="openLightbox(this)">
+<img src="shilap18.jpeg" onclick="openLightbox(this)">
+<img src="shilap19.jpeg" onclick="openLightbox(this)">
+<img src="shilap20.jpeg" onclick="openLightbox(this)">
+<img src="shilap21.jpeg" onclick="openLightbox(this)">
+<img src="shilap22.jpeg" onclick="openLightbox(this)">
+<img src="shilap23.jpeg" onclick="openLightbox(this)">
+<img src="shilap24.jpeg" onclick="openLightbox(this)">
+<img src="shilap25.jpeg" onclick="openLightbox(this)">
+<img src="shilap26.jpeg" onclick="openLightbox(this)">
+<img src="shilap27.jpeg" onclick="openLightbox(this)">
+<img src="shilap28.jpeg" onclick="openLightbox(this)">
+<img src="shilap29.jpeg" onclick="openLightbox(this)">
+<img src="shilap30.jpeg" onclick="openLightbox(this)">
+<img src="shilap31.jpeg" onclick="openLightbox(this)">
 
-  <br><br>
+<!-- VIDEOS -->
+<video onclick="openVideo(this)">
+    <source src="shilapandelvideo3.mp4">
+</video>
 
-  <small
-    id="charCounter"
-    style="color:#64748b;"
-  >
-    0 / 125
-  </small>
+<video onclick="openVideo(this)">
+    <source src="shilavideo.mp4">
+</video>
 
-  <br><br>
+<video onclick="openVideo(this)">
+    <source src="shilavideo2.mp4">
+</video>
 
-  <h3>🫧 Floating Confessions</h3>
+<video onclick="openVideo(this)">
+    <source src="shilavideo3.mp4">
+</video>
 
-  <div id="confessionList"></div>
+<video onclick="openVideo(this)">
+    <source src="shilavideo4.mp4">
+</video>
 
-  <!-- ✅ Ethers -->
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<video onclick="openVideo(this)">
+    <source src="shilavideo5.mp4">
+</video>
 
-  <!-- ✅ Modern Wallet Popup -->
-  <script type="module">
+</div>
+</section>
 
-    import {
-      EthereumClient,
-      w3mConnectors,
-      w3mProvider
-    } from 'https://unpkg.com/@web3modal/ethereum@2.7.1/dist/index.js'
+<section>
+     <div class="section-header">
+    <h2>Our Services</h2>
+     </div>
 
-    import {
-      Web3Modal
-    } from 'https://unpkg.com/@web3modal/html@2.7.1/dist/index.js'
+    <div class="service">Wedding Decoration</div>
+    <div class="service">Birthday Decoration</div>
+    <div class="service">Stage Decoration</div>
+    <div class="service">Event Decoration</div>
+</section>
 
-    import {
-      configureChains,
-      createConfig
-    } from 'https://esm.sh/wagmi'
+<section class="reach-us">
+    <div class="section-header">
+    <h2>Reach Us</h2>
+    </div>
 
-    import {
-      mainnet,
-      base
-    } from 'https://esm.sh/wagmi/chains'
+    <p>Karidhya, Pipeline Road (near Ghosh Pukur), Suri, Birbhum</p>
 
-    const projectId =
-      '24a3a3aaa955599c699d8dcd73aa065a'
+   <a class="btn" href="https://maps.app.goo.gl/jwKa1Lp1Rb7Fymyb7?g_st=aw" target="_blank">
+    <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" width="18" style="vertical-align: middle; margin-right: 6px;">
+    View Location
+ </a>
+</section>
+    
+<script>
+let sections = document.querySelectorAll("section");
 
-    const chains = [
-      mainnet,
-      base
-    ]
+function showSections() {
+    sections.forEach(sec => {
+        let rect = sec.getBoundingClientRect();
 
-    const { publicClient } =
-      configureChains(chains, [
-        w3mProvider({ projectId })
-      ])
-
-    const wagmiConfig =
-      createConfig({
-
-        autoConnect: true,
-
-        connectors:
-          w3mConnectors({
-            projectId,
-            chains
-          }),
-
-        publicClient
-      })
-
-    const ethereumClient =
-      new EthereumClient(
-        wagmiConfig,
-        chains
-      )
-
-    const modal =
-      new Web3Modal(
-        {
-          projectId,
-          themeMode: 'dark'
-        },
-        ethereumClient
-      )
-
-    window.contract = null
-    window.provider = null
-    window.signer = null
-
-    const contractAddress =
-      "0x4f1ab8fcc85aaa20ffe3105add56b2d2185aa3db";
-
-    const abi = [
-      "function postConfession(string memory _message) payable",
-      "function getTotalConfessions() view returns (uint256)",
-      "function confessions(uint256) view returns (string memory, uint256, uint256)"
-    ];
-
-    window.connectWallet =
-      async () => {
-
-        try {
-
-          modal.openModal()
-
-          modal.subscribeModal(async state => {
-
-            if (!state.open) {
-
-              const walletProvider =
-                await modal.getWalletProvider()
-
-              if (!walletProvider) return
-
-              window.provider =
-                new ethers.providers.Web3Provider(
-                  walletProvider
-                )
-
-              window.signer =
-                provider.getSigner()
-
-              const network =
-                await provider.getNetwork()
-
-              if (network.chainId !== 8453) {
-
-                await provider.send(
-                  "wallet_switchEthereumChain",
-                  [{ chainId: "0x2105" }]
-                )
-              }
-
-              window.contract =
-                new ethers.Contract(
-                  contractAddress,
-                  abi,
-                  signer
-                )
-
-              alert(
-                "Wallet Connected ✅"
-              )
-            }
-          })
-
-        } catch(err) {
-
-          console.error(err)
-
-          alert(
-            "Wallet connection failed"
-          )
+        if (rect.top < window.innerHeight - 100) {
+            sec.classList.add("show");
         }
-      }
-
-  </script>
-
-  <script>
-
-    const readProvider =
-      new ethers.providers.JsonRpcProvider(
-        "https://mainnet.base.org"
-      );
-
-    const readContract =
-      new ethers.Contract(
-        "0x4f1ab8fcc85aaa20ffe3105add56b2d2185aa3db",
-        [
-          "function getTotalConfessions() view returns (uint256)",
-          "function confessions(uint256) view returns (string memory, uint256, uint256)"
-        ],
-        readProvider
-      );
-
-    const blockedWords = [
-
-      "kill",
-      "murder",
-      "bomb",
-      "terror",
-      "shoot",
-      "stab",
-      "kidnap",
-
-      "rape",
-      "pedo",
-      "pedophile",
-
-      "suicide",
-      "selfharm",
-
-      "fuck",
-      "bitch",
-      "sex",
-      "anal",
-
-      "nigga",
-      "nigger",
-
-      "genocide"
-    ];
-
-    function normalizeMessage(text) {
-
-      return text
-
-        .toLowerCase()
-
-        .replace(/4/g, "a")
-        .replace(/1/g, "i")
-        .replace(/3/g, "e")
-        .replace(/0/g, "o")
-        .replace(/5/g, "s")
-        .replace(/7/g, "t")
-
-        .replace(/\s+/g, "")
-
-        .replace(/[^a-z0-9]/g, "")
-
-        .replace(/(.)\1+/g, "$1");
-    }
-
-    const messageInput =
-      document.getElementById("message");
-
-    const charCounter =
-      document.getElementById("charCounter");
-
-    messageInput.addEventListener("input", () => {
-
-      if (
-        messageInput.value.length > 125
-      ) {
-
-        messageInput.value =
-          messageInput.value.slice(0, 125);
-      }
-
-      const length =
-        messageInput.value.length;
-
-      charCounter.innerText =
-        `${length} / 125`;
     });
+}
 
-    async function postConfession() {
+window.addEventListener("scroll", showSections);
+window.addEventListener("load", showSections);
+    function openLightbox(img) {
+    document.getElementById("lightbox").style.display = "flex";
+    document.getElementById("lightboxImg").src = img.src;
+}
 
-      if (!window.contract) {
-
-        alert("Connect wallet first");
-        return;
-      }
-
-      const msg =
-        document.getElementById("message")
-        .value
-        .trim();
-
-      if (!msg) {
-
-        alert("Write something first");
-        return;
-      }
-
-      try {
-
-        const tx =
-          await window.contract.postConfession(
-            msg,
-            {
-              value:
-                ethers.utils.parseEther(
-                  "0.00001"
-                )
-            }
-          );
-
-        await tx.wait();
-
-        alert(
-          "Confession Posted ✅"
-        )
-
-        document.getElementById(
-          "message"
-        ).value = "";
-
-        await loadConfessions();
-
-      } catch (err) {
-
-        console.error(err);
-
-        alert("Transaction failed");
-      }
+function closeLightbox() {
+    document.getElementById("lightbox").style.display = "none";
+}
+    function openVideo(video) {
+    if (video.requestFullscreen) {
+        video.requestFullscreen();
     }
+    video.play();
+}
+</script>
+   <div id="lightbox" class="lightbox" onclick="closeLightbox()">
 
-    function formatTime(ts) {
+    <!-- ❌ CLOSE BUTTON -->
+    <span class="close-btn" onclick="event.stopPropagation(); closeLightbox()">×</span>
 
-      const now =
-        Math.floor(Date.now() / 1000);
+    <img id="lightboxImg">
 
-      const diff =
-        now - ts;
+</div>
+    <a href="https://wa.me/916294848759" target="_blank" class="whatsapp-btn">
+    <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" width="30">
+  </a>
+    </section>
 
-      if (diff < 60)
-        return "Just now";
-
-      if (diff < 3600) {
-
-        const m =
-          Math.floor(diff / 60);
-
-        return m + " mins ago";
-      }
-
-      if (diff < 86400) {
-
-        const h =
-          Math.floor(diff / 3600);
-
-        return h + " hours ago";
-      }
-
-      const d =
-        Math.floor(diff / 86400);
-
-      return d + " days ago";
-    }
-
-    async function loadConfessions() {
-
-      try {
-
-        const total =
-          await readContract.getTotalConfessions();
-
-        const list =
-          document.getElementById(
-            "confessionList"
-          );
-
-        list.innerHTML = "";
-
-      } catch (err) {
-
-        console.error(err);
-      }
-    }
-
-    window.onload = async () => {
-
-      await loadConfessions();
-    };
-
-  </script>
+<!-- WhatsApp Button -->
+<a href="https://wa.me/916294848759" target="_blank" class="whatsapp-btn">
+    <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" width="30">
+</a>
 
 </body>
 </html>
