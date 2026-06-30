@@ -84,18 +84,29 @@ header p {
 
 .btn:hover {
  transform: scale(1.05);
+ box-shadow: 0 8px 20px rgba(0,0,0,.15);
 }
 
 /* SECTION */
-section {
- max-width: 900px;
- margin: 25px auto;
- background: white;
- padding: 20px;
- border-radius: 12px;
- text-align: center;
- box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-}
+ section {
+   max-width: 900px;
+   margin: 25px auto;
+   background: white;
+   padding: 20px;
+   border-radius: 12px;
+   text-align: center;
+   box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+
+ /* Animation */
+  opacity: 0;
+  transform: translateY(25px);
+  transition: all .6s ease;
+ }
+
+ section.show {
+ opacity: 1;
+ transform: translateY(0);
+ }
     .section-header {
     display: inline-block;
     padding: 8px 18px;
@@ -140,6 +151,7 @@ section {
  object-fit: cover;
  border-radius: 6px;
  transition: 0.3s;
+    cursor: pointer;
 }
 
 .gallery img:hover,
@@ -425,5 +437,10 @@ function closeLightbox() {
     <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" width="30">
 </a>
 
+    <footer style="text-align:center;padding:20px;color:#777;font-size:13px;">
+ © 2026 Bishal Decorators. All Rights Reserved.
+ </footer>
+
 </body>
 </html>
+
