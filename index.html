@@ -1,1 +1,429 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Bishal Decorators</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+<style>
 
+html {
+ scroll-behavior: smooth;
+}
+
+body {
+ margin: 0;
+ font-family: Arial, sans-serif;
+ background: #f8f5f2;
+ animation: fadeIn 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+ from { opacity: 0; transform: translateY(10px); }
+ to { opacity: 1; transform: translateY(0); }
+}
+
+/* HEADER */
+header {
+ background: linear-gradient(-45deg, #6b4226, #8b5e3c, #6b4226, #a47148);
+ background-size: 300% 300%;
+ animation: gradientMove 8s ease infinite, slideDown 0.8s ease;
+ color: white;
+ text-align: center;
+ padding: 60px 20px;
+ position: sticky;
+ top: 0;
+ z-index: 1000;
+}
+
+header h1 {
+ font-size: 32px;
+ margin: 0;
+ letter-spacing: 3px;
+ text-transform: uppercase;
+
+ background: linear-gradient(90deg, #fff, #ffd9b3, #fff);
+ -webkit-background-clip: text;
+ -webkit-text-fill-color: transparent;
+
+ animation: shineText 4s linear infinite;
+}
+
+header p {
+ margin-top: 10px;
+ font-size: 14px;
+ opacity: 0.9;
+}
+
+/* animations */
+@keyframes gradientMove {
+ 0% { background-position: 0% 50%; }
+ 50% { background-position: 100% 50%; }
+ 100% { background-position: 0% 50%; }
+}
+
+@keyframes shineText {
+ 0% { background-position: -200px; }
+ 100% { background-position: 200px; }
+}
+
+/* BUTTON */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    background: white;
+    color: #6b4226;
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    margin: 6px;
+    transition: 0.3s;
+}
+
+.btn:hover {
+ transform: scale(1.05);
+}
+
+/* SECTION */
+section {
+ max-width: 900px;
+ margin: 25px auto;
+ background: white;
+ padding: 20px;
+ border-radius: 12px;
+ text-align: center;
+ box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+}
+    .section-header {
+    display: inline-block;
+    padding: 8px 18px;
+    border-radius: 25px;
+    background: #f1e6dc;
+    color: #6b4226;
+    font-size: 14px;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.section-header h2 {
+    margin: 0;
+    font-size: 16px;
+}
+    .reach-us {
+    max-width: 900px;
+    margin: 25px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+}
+
+/* 🔥 GALLERY FIX (MAIN PART) */
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+
+    border: 2px solid #e0d6cc;
+    padding: 8px;
+    border-radius: 12px;
+    background: #fff;
+}
+
+.gallery img,
+.gallery video {
+ width: 100%;
+ aspect-ratio: 1 / 1;
+ object-fit: cover;
+ border-radius: 6px;
+ transition: 0.3s;
+}
+
+.gallery img:hover,
+.gallery video:hover {
+ transform: scale(1.05);
+}
+
+/* SERVICES */
+.service {
+ background: #f1f1f1;
+ padding: 12px;
+ margin: 10px 0;
+ border-radius: 8px;
+ transition: 0.3s;
+}
+
+.service:hover {
+ transform: scale(1.02);
+}
+
+/* CONTACT */
+.contact a {
+ display: block;
+ margin: 8px 0;
+ color: #6b4226;
+ text-decoration: none;
+ font-weight: bold;
+}
+
+/* LIGHTBOX */
+ .lightbox {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    background: rgba(0,0,0,0.95);
+
+    display: none;
+    justify-content: center;
+    align-items: center;
+
+    z-index: 9999;
+}
+
+.lightbox img {
+    max-width: 95%;
+    max-height: 95%;
+    object-fit: contain;
+}
+
+/* WHATSAPP FLOAT */
+.whatsapp-btn {
+ position: fixed;
+ bottom: 20px;
+ right: 20px;
+ background: #25D366;
+ color: white;
+ font-size: 22px;
+ padding: 14px;
+ border-radius: 50%;
+ text-decoration: none;
+ z-index: 1000;
+ transition: 0.3s;
+}
+
+.whatsapp-btn:hover {
+ transform: scale(1.1);
+}
+
+/* 📱 MOBILE FIX */
+@media (max-width: 600px) {
+
+ header {
+     padding: 40px 15px;
+ }
+
+ header h1 {
+     font-size: 22px;
+ }
+
+ header p {
+     font-size: 12px;
+ }
+
+ .btn {
+     display: block;
+     width: 85%;
+     margin: 8px auto;
+     font-size: 14px;
+ }
+
+ section {
+     margin: 10px;
+     padding: 15px;
+ }
+
+ /* 🔥 MOBILE GRID FIX */
+ .gallery {
+     grid-template-columns: repeat(3, 1fr);
+ }
+
+ .service {
+     font-size: 13px;
+ }
+}
+    .close-btn {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    font-size: 28px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+
+    background: rgba(0,0,0,0.5);
+    padding: 8px 14px;
+    border-radius: 50%;
+
+    z-index: 10000;
+}
+
+.close-btn:hover {
+    background: rgba(0,0,0,0.8);
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1> Bishal Decorators</h1>
+<p>Making Your Events Beautiful</p>
+
+    <a class="btn" href="tel:6294848759">📞 Call Now</a>
+    <a class="btn" href="https://wa.me/916294848759" target="_blank">
+    <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" width="18">
+    WhatsApp
+    </a>
+</header>
+
+<section>
+    <div class="section-header">
+    <h2>Our Work Album</h2>
+  </div>
+    
+    <div class="gallery">
+
+<img src="shilapandel.jpeg" onclick="openLightbox(this)">
+<img src="shilapandel2.jpeg" onclick="openLightbox(this)">
+<img src="shilapandel3.jpeg" onclick="openLightbox(this)">
+
+<img src="shilap4.jpeg" onclick="openLightbox(this)">
+<img src="shilap5.jpeg" onclick="openLightbox(this)">
+<img src="shilap6.jpeg" onclick="openLightbox(this)">
+<img src="shilap7.jpeg" onclick="openLightbox(this)">
+<img src="shilap8.jpeg" onclick="openLightbox(this)">
+<img src="shilap9.jpeg" onclick="openLightbox(this)">
+
+<img src="shilap10.jpeg" onclick="openLightbox(this)">
+<img src="shilap11.jpeg" onclick="openLightbox(this)">
+<img src="shilap12.jpeg" onclick="openLightbox(this)">
+<img src="shilap13.jpeg" onclick="openLightbox(this)">
+<img src="shilap15.jpeg" onclick="openLightbox(this)">
+<img src="shilap16.jpeg" onclick="openLightbox(this)">
+<img src="shilap17.jpeg" onclick="openLightbox(this)">
+<img src="shilap18.jpeg" onclick="openLightbox(this)">
+<img src="shilap19.jpeg" onclick="openLightbox(this)">
+<img src="shilap20.jpeg" onclick="openLightbox(this)">
+<img src="shilap21.jpeg" onclick="openLightbox(this)">
+<img src="shilap22.jpeg" onclick="openLightbox(this)">
+<img src="shilap23.jpeg" onclick="openLightbox(this)">
+<img src="shilap24.jpeg" onclick="openLightbox(this)">
+<img src="shilap25.jpeg" onclick="openLightbox(this)">
+<img src="shilap26.jpeg" onclick="openLightbox(this)">
+<img src="shilap27.jpeg" onclick="openLightbox(this)">
+<img src="shilap28.jpeg" onclick="openLightbox(this)">
+<img src="shilap29.jpeg" onclick="openLightbox(this)">
+<img src="shilap30.jpeg" onclick="openLightbox(this)">
+<img src="shilap31.jpeg" onclick="openLightbox(this)">
+
+<!-- VIDEOS -->
+<video onclick="openVideo(this)">
+    <source src="shilapandelvideo3.mp4">
+</video>
+
+<video onclick="openVideo(this)">
+    <source src="shilavideo.mp4">
+</video>
+
+<video onclick="openVideo(this)">
+    <source src="shilavideo2.mp4">
+</video>
+
+<video onclick="openVideo(this)">
+    <source src="shilavideo3.mp4">
+</video>
+
+<video onclick="openVideo(this)">
+    <source src="shilavideo4.mp4">
+</video>
+
+<video onclick="openVideo(this)">
+    <source src="shilavideo5.mp4">
+</video>
+
+</div>
+</section>
+
+<section>
+     <div class="section-header">
+    <h2>Our Services</h2>
+     </div>
+
+    <div class="service">Wedding Decoration</div>
+    <div class="service">Birthday Decoration</div>
+    <div class="service">Stage Decoration</div>
+    <div class="service">Event Decoration</div>
+</section>
+
+<section class="reach-us">
+    <div class="section-header">
+    <h2>Reach Us</h2>
+    </div>
+
+    <p>Karidhya, Pipeline Road (near Ghosh Pukur), Suri, Birbhum</p>
+
+   <a class="btn" href="https://maps.app.goo.gl/jwKa1Lp1Rb7Fymyb7?g_st=aw" target="_blank">
+    <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" width="18" style="vertical-align: middle; margin-right: 6px;">
+    View Location
+ </a>
+</section>
+    
+<script>
+let sections = document.querySelectorAll("section");
+
+function showSections() {
+    sections.forEach(sec => {
+        let rect = sec.getBoundingClientRect();
+
+        if (rect.top < window.innerHeight - 100) {
+            sec.classList.add("show");
+        }
+    });
+}
+
+window.addEventListener("scroll", showSections);
+window.addEventListener("load", showSections);
+    function openLightbox(img) {
+    document.getElementById("lightbox").style.display = "flex";
+    document.getElementById("lightboxImg").src = img.src;
+}
+
+function closeLightbox() {
+    document.getElementById("lightbox").style.display = "none";
+}
+    function openVideo(video) {
+    if (video.requestFullscreen) {
+        video.requestFullscreen();
+    }
+    video.play();
+}
+</script>
+   <div id="lightbox" class="lightbox" onclick="closeLightbox()">
+
+    <!-- ❌ CLOSE BUTTON -->
+    <span class="close-btn" onclick="event.stopPropagation(); closeLightbox()">×</span>
+
+    <img id="lightboxImg">
+
+</div>
+    <a href="https://wa.me/916294848759" target="_blank" class="whatsapp-btn">
+    <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" width="30">
+  </a>
+    </section>
+
+<!-- WhatsApp Button -->
+<a href="https://wa.me/916294848759" target="_blank" class="whatsapp-btn">
+    <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" width="30">
+</a>
+
+</body>
+</html>
